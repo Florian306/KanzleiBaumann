@@ -79,6 +79,15 @@ class KanzleiApp {
             if (data.liveStatus) localStorage.setItem(InternaModules.keys.status, data.liveStatus);
             InternaModules.init();
           }
+          if (Array.isArray(this.cases)) {
+            this.cases.forEach(c => {
+              const pKey = 'pleadings_' + c.id;
+              if (Array.isArray(data[pKey]) && data[pKey].length > 0) {
+                c.pleadingsHistory = data[pKey];
+              }
+            });
+            localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
+          }
         }
       }
     } catch (e) {
@@ -1821,6 +1830,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     c.schriftsatz = field.value;
     localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
     this.updateMetrics();
+    await this.syncSettingToCloud('pleadings_' + caseId, c.pleadingsHistory);
     await this.syncCaseToCloud(c);
     this.openCaseDetail(caseId, 'schriftsatz');
     this.showToast('Schriftsatz mit Zeitstempel an Akte angehängt!', 'success');
@@ -1841,10 +1851,12 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     this.exportOfficialDocument(caseId);
   }
 
-  deletePleadingHistory(caseId, entryId) {
+  async deletePleadingHistory(caseId, entryId) {
     const c = this.cases.find(item => item.id === caseId);
     if (!c || !Array.isArray(c.pleadingsHistory)) return;
     c.pleadingsHistory = c.pleadingsHistory.filter(p => p.id !== entryId);
+    localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
+    await this.syncSettingToCloud('pleadings_' + caseId, c.pleadingsHistory);
     this.saveCases(c);
     this.openCaseDetail(caseId, 'schriftsatz');
   }
