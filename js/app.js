@@ -1813,8 +1813,30 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     });
     c.schriftsatz = field.value;
     this.saveCases(c);
-    this.openCaseDetail(caseId, 'schriftsatz');
+    this.renderPleadingHistory(c);
     this.showToast('Schriftsatz mit Zeitstempel an Akte angehängt!', 'success');
+  }
+
+  renderPleadingHistory(c) {
+    const listEl = document.getElementById('pleadingHistoryList');
+    if (!listEl) return;
+    listEl.innerHTML = (Array.isArray(c.pleadingsHistory) && c.pleadingsHistory.length > 0)
+      ? c.pleadingsHistory.map(p => `
+        <div class="interna-item-card" style="padding: 12px 14px;">
+          <div class="interna-item-main">
+            <div class="interna-item-top">
+              <span class="az-tag" style="font-size: 0.72rem; padding: 2px 8px;">🕒 ${this.escapeHtml(p.timestamp)}</span>
+              <strong style="font-size: 0.9rem;">${this.escapeHtml(p.title)}</strong>
+            </div>
+            <div class="interna-item-sub" style="font-size: 0.8rem; margin-top: 4px;">${this.escapeHtml(p.preview)}</div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button class="btn btn-secondary btn-sm" onclick="app.loadPleadingFromHistory('${c.id}', '${p.id}')">Laden</button>
+            <button class="btn btn-danger-outline btn-sm" onclick="app.deletePleadingHistory('${c.id}', '${p.id}')">✕</button>
+          </div>
+        </div>
+      `).join('')
+      : `<div style="font-size: 0.84rem; color: var(--text-muted);">Noch keine Schriftsätze mit Zeitstempel an diese Akte angehängt.</div>`;
   }
 
   loadPleadingFromHistory(caseId, entryId) {
@@ -1837,7 +1859,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     if (!c || !Array.isArray(c.pleadingsHistory)) return;
     c.pleadingsHistory = c.pleadingsHistory.filter(p => p.id !== entryId);
     this.saveCases(c);
-    this.openCaseDetail(caseId, 'schriftsatz');
+    this.renderPleadingHistory(c);
   }
 
   exportAllDatabase() {
