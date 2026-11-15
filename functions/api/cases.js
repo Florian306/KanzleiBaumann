@@ -42,11 +42,12 @@ async function ensureSchema(db) {
     db.prepare(`CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS pleadings (
+      caseId TEXT PRIMARY KEY,
+      data TEXT
     )`)
   ]);
-  try {
-    await db.prepare('ALTER TABLE cases ADD COLUMN pleadingsHistory TEXT').run();
-  } catch {}
 }
 
 function jsonResponse(data, status = 200) {
@@ -61,10 +62,16 @@ export async function onRequestGet({ env }) {
   await ensureSchema(env.DB);
 
   const { results } = await env.DB.prepare('SELECT * FROM cases ORDER BY createdAt DESC').all();
+  const { results: pleadingRows } = await env.DB.prepare('SELECT caseId, data FROM pleadings').all();
+  const pleadingsMap = {};
+  (pleadingRows || []).forEach(r => {
+    try { pleadingsMap[r.caseId] = JSON.parse(r.data); } catch { pleadingsMap[r.caseId] = []; }
+  });
+
   const cases = (results || []).map(row => ({
     ...row,
     markers: row.markers ? JSON.parse(row.markers) : [],
-    pleadingsHistory: row.pleadingsHistory ? JSON.parse(row.pleadingsHistory) : []
+    pleadingsHistory: pleadingsMap[row.id] || (row.pleadingsHistory ? JSON.parse(row.pleadingsHistory) : [])
   }));
   return jsonResponse({ cases });
 }
@@ -80,8 +87,8 @@ export async function onRequestPost({ request, env }) {
       incidentDate, description, demands, notes, witnesses, schriftsatz,
       securityLevel, deadlineTimestamp, markers,
       feeGrundgebuehr, feeVerfahrensgebuehr, feeTerminsgebuehr,
-      createdAt, filesCount, pleadingsHistory
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      createdAt, filesCount
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     c.id, c.az, c.clientName || '', c.clientPhone || '', c.opponent || '',
     c.caseType || '', c.status || 'Eingereicht', c.incidentDate || '',
@@ -89,9 +96,14 @@ export async function onRequestPost({ request, env }) {
     c.schriftsatz || '', c.securityLevel || 'normal', c.deadlineTimestamp || null,
     JSON.stringify(c.markers || []),
     c.feeGrundgebuehr || 0, c.feeVerfahrensgebuehr || 0, c.feeTerminsgebuehr || 0,
-    c.createdAt || new Date().toISOString(), c.filesCount || 0,
-    JSON.stringify(c.pleadingsHistory || [])
+    c.createdAt || new Date().toISOString(), c.filesCount || 0
   ).run();
+
+  if (Array.isArray(c.pleadingsHistory)) {
+    await env.DB.prepare('INSERT OR REPLACE INTO pleadings (caseId, data) VALUES (?, ?)')
+      .bind(c.id, JSON.stringify(c.pleadingsHistory))
+      .run();
+  }
     c.feeGrundgebuehr || 0, c.feeVerfahrensgebuehr || 0, c.feeTerminsgebuehr || 0,
     c.createdAt || new Date().toISOString(), c.filesCount || 0
   ).run();
