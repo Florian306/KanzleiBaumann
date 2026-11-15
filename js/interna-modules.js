@@ -284,7 +284,10 @@ const InternaModules = {
     this.saveFinances(list);
     e.target.reset();
     this.updateFinanceBreakdown();
-    if (window.app) app.showToast('Honorareintrag verbucht!', 'success');
+    if (window.app) {
+      app.closeModal('modalNewInvoice');
+      app.showToast('Rechnung erfolgreich erstellt!', 'success');
+    }
   },
 
   toggleFinanceStatus(id) {
