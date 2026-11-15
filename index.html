@@ -675,10 +675,11 @@
 
   <!-- Modal: Neue Rechnung erstellen -->
   <div id="modalNewInvoice" class="modal-backdrop" onclick="if(event.target===this) app.closeModal('modalNewInvoice')">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <h2>Neue Rechnung erstellen</h2>
-        <button type="button" class="modal-close" onclick="app.closeModal('modalNewInvoice')">✕</button>
+    <div class="modal-card modal-lg" style="position: relative;">
+      <button type="button" onclick="app.closeModal('modalNewInvoice')" title="Schließen" style="position: absolute; top: 18px; right: 20px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem;">✕</button>
+      <div class="modal-header" style="margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+        <h2 style="margin: 0; font-size: 1.35rem; color: var(--accent-gold-light);">🧾 Neue Rechnung erstellen</h2>
+        <p class="modal-sub" style="margin: 4px 0 0 0;">Mandantendaten & Leistungen gemäß Honorarordnung erfassen</p>
       </div>
       <form onsubmit="InternaModules.addFinanceEntry(event)">
         <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">

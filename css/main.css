@@ -3043,6 +3043,28 @@ html, body {
   flex-shrink: 0;
 }
 
+.modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-card::-webkit-scrollbar-track {
+  background: rgba(15, 17, 25, 0.5);
+  border-radius: 3px;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+  background: rgba(197, 160, 89, 0.35);
+  border-radius: 3px;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  -webkit-text-fill-color: var(--text-main) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* ================= PRINT / PDF EXPORT ENGINE ================= */
 @page {
   size: A4 portrait;
