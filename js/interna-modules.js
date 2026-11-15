@@ -271,8 +271,10 @@ const InternaModules = {
 
     const desc = breakdown.map(b => b.title).join(' + ');
     const list = this.getFinances();
+    const invoiceNo = `RE-${new Date().getFullYear()}-${String(101 + list.length).padStart(3, '0')}`;
     list.unshift({
       id: 'fin_' + Date.now(),
+      invoiceNo,
       client, desc, breakdown, amount, status,
       date: new Date().toLocaleDateString('de-DE')
     });
@@ -317,10 +319,13 @@ const InternaModules = {
       return;
     }
 
-    container.innerHTML = list.map(item => `
-      <div class="interna-item-card">
+    container.innerHTML = list.map((item, idx) => {
+      const invNo = item.invoiceNo || `RE-2026-${String(101 + idx).padStart(3, '0')}`;
+      return `
+      <div class="interna-item-card fin-invoice-card">
         <div class="interna-item-main" style="width: 100%;">
           <div class="interna-item-top">
+            <span class="az-tag" style="font-size:0.74rem; padding:2px 8px;">${invNo}</span>
             <span class="fin-status-pill ${item.status === 'Bezahlt' ? 'paid' : 'open'}" onclick="InternaModules.toggleFinanceStatus('${item.id}')" title="Klicken zum Umschalten">
               ${item.status === 'Bezahlt' ? '✓ Bezahlt' : '⏳ Offen (Überweisung)'}
             </span>
@@ -333,9 +338,101 @@ const InternaModules = {
             </div>
           ` : `<div class="interna-item-sub">${app.escapeHtml(item.desc)}</div>`}
         </div>
-        <button class="btn btn-danger-outline btn-sm" onclick="InternaModules.deleteFinanceEntry('${item.id}')" title="Eintrag löschen">✕</button>
+        <div class="fin-card-actions">
+          <button class="btn btn-secondary btn-sm" onclick="InternaModules.exportInvoicePdf('${item.id}')" title="Offizielle Rechnung als PDF drucken">📄 Rechnung PDF</button>
+          <button class="btn btn-danger-outline btn-sm" onclick="InternaModules.deleteFinanceEntry('${item.id}')" title="Eintrag löschen">✕</button>
+        </div>
       </div>
-    `).join('');
+    `;}).join('');
+  },
+
+  exportInvoicePdf(id) {
+    const item = this.getFinances().find(i => i.id === id);
+    if (!item || !window.app) return;
+
+    const modalBody = document.getElementById('officialDocContent');
+    if (!modalBody) return;
+
+    const fmt = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+    const invNo = item.invoiceNo || `RE-${new Date().getFullYear()}-101`;
+    const rows = Array.isArray(item.breakdown) && item.breakdown.length > 0
+      ? item.breakdown
+      : [{ title: item.desc || 'Anwaltliche Leistung', amount: item.amount }];
+
+    modalBody.innerHTML = `
+      <div class="official-letterhead-card invoice-pdf-card">
+        <div class="letterhead-header" style="align-items: center;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="assets/logo.jpg" alt="Kanzlei Logo" style="width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2px solid #b8862d;">
+            <div>
+              <div class="letterhead-firm-title">KANZLEI DR. JUR. LARS BAUMANN</div>
+              <div class="letterhead-firm-sub">Rechtsanwalt • Fachanwaltschaft für Strafrecht & Zivilrecht</div>
+              <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 030 / 889 204 00</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: #1e3a8a;">${invNo}</div>
+            <div style="font-size: 0.85rem; color: #475569;">Berlin, den ${item.date}</div>
+            <div style="font-size: 0.78rem; font-weight: 700; margin-top: 4px; color: ${item.status === 'Bezahlt' ? '#059669' : '#b45309'};">
+              Status: ${item.status === 'Bezahlt' ? 'BEZAHLT' : 'ZAHLUNG OFFEN'}
+            </div>
+          </div>
+        </div>
+
+        <div class="letterhead-court-info" style="margin-bottom: 24px;">
+          <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase;">Rechnungsempfänger / Mandant:</span><br>
+          <strong style="font-size: 1.15rem;">${app.escapeHtml(item.client)}</strong>
+        </div>
+
+        <h3 style="font-size: 1.25rem; margin-bottom: 12px; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">
+          Honorarnote gemäß offizieller Gebührenordnung
+        </h3>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.96rem;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 2px solid #0f172a; text-align: left;">
+              <th style="padding: 10px 12px; width: 50px;">Pos.</th>
+              <th style="padding: 10px 12px;">Anwaltliche Leistung / Auslagen</th>
+              <th style="padding: 10px 12px; text-align: right;">Betrag</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((r, i) => `
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 10px 12px; color: #475569;">${i + 1}.</td>
+                <td style="padding: 10px 12px; font-weight: 600;">${app.escapeHtml(r.title)}</td>
+                <td style="padding: 10px 12px; text-align: right; font-family: var(--font-mono);">${fmt(r.amount)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="border-top: 2px solid #0f172a; background: #f8fafc;">
+              <td colspan="2" style="padding: 12px; font-weight: 700; font-size: 1.05rem;">Gesamthonorar (feste Pauschale)</td>
+              <td style="padding: 12px; text-align: right; font-family: var(--font-mono); font-weight: 800; font-size: 1.15rem; color: #1e3a8a;">${fmt(item.amount)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div style="background: #f8fafc; border-left: 4px solid #b8862d; padding: 12px 16px; font-size: 0.88rem; color: #334155; margin-bottom: 28px;">
+          <strong>Zahlungsmodalitäten:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei Dr. jur. Lars Baumann unter Angabe der Rechnungsnummer <strong>${invNo}</strong>. Barzahlungen sind grundsätzlich ausgeschlossen.
+        </div>
+
+        <div class="letterhead-footer-sign">
+          <div class="wax-seal">
+            <span>§</span>
+          </div>
+          <div class="signature-block">
+            <div class="signature-svg">Dr. Lars Baumann</div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: #334155; margin-top: 4px;">
+              Dr. jur. Lars Baumann<br>
+              Rechtsanwalt & Kanzleiinhaber
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    app.openModal('modalOfficialDocument');
   },
 
   // --- 3. INTERNE NOTIZEN & TO-DO ---

@@ -3010,6 +3010,39 @@ html, body {
   color: var(--text-muted);
 }
 
+.fin-services-selector::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fin-services-selector::-webkit-scrollbar-track {
+  background: rgba(15, 17, 25, 0.5);
+  border-radius: 3px;
+}
+
+.fin-services-selector::-webkit-scrollbar-thumb {
+  background: rgba(197, 160, 89, 0.35);
+  border-radius: 3px;
+}
+
+.fin-services-selector::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 160, 89, 0.6);
+}
+
+.fin-invoice-card {
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.fin-invoice-card:hover {
+  border-color: rgba(197, 160, 89, 0.35);
+}
+
+.fin-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 /* ================= PRINT / PDF EXPORT ENGINE ================= */
 @page {
   size: A4 portrait;
