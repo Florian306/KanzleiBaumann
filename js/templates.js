@@ -104,5 +104,74 @@ Nach fruchtlosem Fristablauf werde ich unverzüglich Klage vor dem Landgericht B
 Mit vorzüglicher Hochachtung,
 Dr. jur. Lars Baumann
 Rechtsanwalt`;
+  },
+
+  getAkteneinsicht(c, dateNow) {
+    return `An die
+Staatsanwaltschaft Berlin / Polizei Berlin
+
+Berlin, den ${dateNow}
+Unser Zeichen: ${c.az}
+
+In dem Ermittlungsverfahren gegen
+${c.clientName}
+wegen: ${c.caseType}
+
+zeige ich an, dass ich den Beschuldigten vertrete. Eine auf mich lautende Vollmacht wird versichert.
+
+Namens und im Auftrag meines Mandanten beantrage ich gemäß § 147 StPO
+
+    vollständige Akteneinsicht
+
+in die gesamten Ermittlungsakten einschließlich sämtlicher Beiakten, Beweismittelverzeichnisse sowie etwaiger Video- und Audioaufzeichnungen.
+
+Bis zur Gewährung der Akteneinsicht wird mein Mandant von seinem Aussageverweigerungsrecht Gebrauch machen.
+
+Mit freundlichen Grüßen
+Dr. jur. Lars Baumann
+Rechtsanwalt`;
+  },
+
+  getVerteidigungsanzeige(c, dateNow) {
+    return `An das
+Amtsgericht Tiergarten / Landgericht Berlin
+
+Berlin, den ${dateNow}
+Unser Zeichen: ${c.az}
+
+Strafsache gegen: ${c.clientName}
+Gegner / Behörde: ${c.opponent}
+Vorwurf: ${c.caseType}
+
+Hiermit zeige ich die Verteidigung des oben genannten Mandanten an. Die ordnungsgemäße Bevollmächtigung wird anwaltlich versichert.
+
+Es wird beantragt, sämtliche Zustellungen und gerichtlichen Verfügungen ab sofort ausschließlich an meine Kanzlei zu richten.
+
+Mit freundlichen Grüßen
+Dr. jur. Lars Baumann
+Rechtsanwalt`;
+  },
+
+  getEinspruch(c, dateNow) {
+    return `An das
+Amtsgericht Tiergarten / Bußgeldstelle Berlin
+
+Berlin, den ${dateNow}
+Unser Zeichen: ${c.az}
+
+In der Sache: ${c.clientName} ./. ${c.opponent}
+Gegenstand: ${c.caseType}
+
+Namens und in Vollmacht meines Mandanten lege ich gegen den ergangenen Strafbefehl / Bußgeldbescheid form- und fristgerecht
+
+    EINSPRUCH
+
+ein.
+
+Die Begründung des Einspruchs bleibt einem gesonderten Schriftsatz nach erfolgter Akteneinsicht gemäß § 147 StPO vorbehalten.
+
+Mit freundlichen Grüßen
+Dr. jur. Lars Baumann
+Rechtsanwalt`;
   }
 };

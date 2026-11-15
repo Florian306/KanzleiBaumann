@@ -1179,30 +1179,65 @@ class KanzleiApp {
       <!-- TAB 3: SCHRIFTSÄTZE -->
       <div id="tab-schriftsatz" class="tab-content-panel">
         <div class="schriftsatz-builder">
-          <div class="editor-header">
-            <h3>Gerichtsfeste Schriftsätze formulieren (Gerichte Berlin)</h3>
+          <div class="editor-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h3 style="margin: 0;">Gerichtsfeste Schriftsätze formulieren (Gerichte Berlin)</h3>
             <div class="schriftsatz-templates">
-              <button class="btn btn-secondary btn-sm" onclick="app.applySchriftsatzTemplate('${c.id}', 'haftbeschwerde')">
-                + AG Tiergarten: Haftbeschwerde
+              <select class="btn btn-secondary btn-sm" style="padding: 8px 12px; text-align: left;" onchange="if(this.value){ app.applySchriftsatzTemplate('${c.id}', this.value); this.value=''; }">
+                <option value="">📄 Vorlage einfügen...</option>
+                <option value="akteneinsicht">📂 Akteneinsicht (§ 147 StPO)</option>
+                <option value="verteidigungsanzeige">🛡️ Verteidigungsanzeige</option>
+                <option value="haftbeschwerde">⚖️ AG Tiergarten: Haftbeschwerde</option>
+                <option value="einspruch">✋ Einspruch (Strafbefehl / Bußgeld)</option>
+                <option value="dienstbeschwerde">🚨 Polizei Berlin: Dienstaufsichtsbeschwerde</option>
+                <option value="schadensersatz">💶 Zahlungsaufforderung Schadensersatz</option>
+              </select>
+            </div>
+          </div>
+
+          <textarea class="editor-textarea" id="detailSchriftsatz" rows="18" style="font-family: 'Times New Roman', serif; font-size: 1.05rem;" placeholder="Hier formuliert Dr. Lars Baumann den Schriftsatz..." oninput="app.updatePleadingStats()" onchange="app.saveFieldChange('${c.id}', 'schriftsatz', this.value)">${this.escapeHtml(c.schriftsatz || '')}</textarea>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px;">
+            <div id="pleadingStats" style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+              ${(() => {
+                const txt = (c.schriftsatz || '').trim();
+                const words = txt ? txt.split(/\s+/).length : 0;
+                const chars = txt.length;
+                const pages = Math.max(1, Math.ceil(chars / 1800));
+                return `${words} Wörter • ${chars} Zeichen • ca. ${pages} Seite${pages > 1 ? 'n' : ''}`;
+              })()}
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="app.attachPleadingToCase('${c.id}')" title="Aktuellen Schriftsatz mit Zeitstempel in der Akten-Historie ablegen">
+                📎 An Akte anhängen
               </button>
-              <button class="btn btn-secondary btn-sm" onclick="app.applySchriftsatzTemplate('${c.id}', 'dienstbeschwerde')">
-                + Polizei Berlin: Dienstaufsichtsbeschwerde
+              <button class="btn btn-secondary" onclick="app.saveFieldChange('${c.id}', 'schriftsatz', document.getElementById('detailSchriftsatz').value)">
+                💾 Schriftsatz sichern
               </button>
-              <button class="btn btn-secondary btn-sm" onclick="app.applySchriftsatzTemplate('${c.id}', 'schadensersatz')">
-                + Vorlage: Zahlungsaufforderung Schadensersatz
+              <button class="btn btn-primary" onclick="app.exportOfficialDocument('${c.id}')">
+                🖨️ Offizieller Schriftsatz mit Siegel
               </button>
             </div>
           </div>
 
-          <textarea class="editor-textarea" id="detailSchriftsatz" rows="18" style="font-family: 'Times New Roman', serif; font-size: 1.05rem;" placeholder="Hier formuliert Dr. Lars Baumann den Schriftsatz..." onchange="app.saveFieldChange('${c.id}', 'schriftsatz', this.value)">${this.escapeHtml(c.schriftsatz || '')}</textarea>
-
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-            <button class="btn btn-secondary" onclick="app.saveFieldChange('${c.id}', 'schriftsatz', document.getElementById('detailSchriftsatz').value)">
-              💾 Schriftsatz sichern
-            </button>
-            <button class="btn btn-primary" onclick="app.exportOfficialDocument('${c.id}')">
-              🖨️ Offizieller Schriftsatz mit Siegel
-            </button>
+          <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 18px;">
+            <h4 style="margin: 0 0 12px 0; font-size: 0.95rem; color: var(--accent-gold-light);">📁 Angehängte Schriftsätze (Akten-Historie)</h4>
+            <div id="pleadingHistoryList" style="display: flex; flex-direction: column; gap: 8px;">
+              ${(Array.isArray(c.pleadingsHistory) && c.pleadingsHistory.length > 0) ? c.pleadingsHistory.map(p => `
+                <div class="interna-item-card" style="padding: 12px 14px;">
+                  <div class="interna-item-main">
+                    <div class="interna-item-top">
+                      <span class="az-tag" style="font-size: 0.72rem; padding: 2px 8px;">🕒 ${this.escapeHtml(p.timestamp)}</span>
+                      <strong style="font-size: 0.9rem;">${this.escapeHtml(p.title)}</strong>
+                    </div>
+                    <div class="interna-item-sub" style="font-size: 0.8rem; margin-top: 4px;">${this.escapeHtml(p.preview)}</div>
+                  </div>
+                  <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                    <button class="btn btn-secondary btn-sm" onclick="app.loadPleadingFromHistory('${c.id}', '${p.id}')">Laden</button>
+                    <button class="btn btn-danger-outline btn-sm" onclick="app.deletePleadingHistory('${c.id}', '${p.id}')">✕</button>
+                  </div>
+                </div>
+              `).join('') : `<div style="font-size: 0.84rem; color: var(--text-muted);">Noch keine Schriftsätze mit Zeitstempel an diese Akte angehängt.</div>`}
+            </div>
           </div>
         </div>
       </div>
@@ -1415,11 +1450,14 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
 
     modalBody.innerHTML = `
       <div class="official-letterhead-card">
-        <div class="letterhead-header">
-          <div>
-            <div class="letterhead-firm-title">KANZLEI DR. JUR. LARS BAUMANN</div>
-            <div class="letterhead-firm-sub">Fachanwaltschaft für Strafrecht, Polizeirecht & Zivilansprüche</div>
-            <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 907-999-3919</div>
+        <div class="letterhead-header" style="align-items: center;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="assets/logo.jpg" alt="Kanzlei Logo" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #b8862d;">
+            <div>
+              <div class="letterhead-firm-title">KANZLEI DR. JUR. LARS BAUMANN</div>
+              <div class="letterhead-firm-sub">Fachanwaltschaft für Strafrecht, Polizeirecht & Zivilansprüche</div>
+              <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 907-999-3919</div>
+            </div>
           </div>
           <div style="text-align: right;">
             <div style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">${c.az}</div>
@@ -1435,8 +1473,9 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
         <div class="letterhead-body-text">${this.escapeHtml(schriftsatzText)}</div>
 
         <div class="letterhead-footer-sign">
-          <div class="wax-seal">
-            <span>§</span>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <img src="assets/logo.jpg" alt="Kanzleisiegel Dr. jur. Lars Baumann" style="width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 2px solid #b8862d; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);">
+            <span style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; font-weight: 600;">Kanzleisiegel</span>
           </div>
           <div class="signature-block">
             <div class="signature-svg">Dr. Lars Baumann</div>
@@ -1678,13 +1717,79 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
       text = SchriftsatzTemplates.getDienstbeschwerde(c, dateNow);
     } else if (templateType === 'schadensersatz') {
       text = SchriftsatzTemplates.getSchadensersatz(c, dateNow);
+    } else if (templateType === 'akteneinsicht') {
+      text = SchriftsatzTemplates.getAkteneinsicht(c, dateNow);
+    } else if (templateType === 'verteidigungsanzeige') {
+      text = SchriftsatzTemplates.getVerteidigungsanzeige(c, dateNow);
+    } else if (templateType === 'einspruch') {
+      text = SchriftsatzTemplates.getEinspruch(c, dateNow);
     }
 
     const field = document.getElementById('detailSchriftsatz');
     if (field) {
       field.value = text;
+      this.updatePleadingStats();
       this.saveFieldChange(caseId, 'schriftsatz', text);
     }
+  }
+
+  updatePleadingStats() {
+    const field = document.getElementById('detailSchriftsatz');
+    const statsEl = document.getElementById('pleadingStats');
+    if (!field || !statsEl) return;
+    const txt = field.value.trim();
+    const words = txt ? txt.split(/\s+/).length : 0;
+    const chars = txt.length;
+    const pages = Math.max(1, Math.ceil(chars / 1800));
+    statsEl.textContent = `${words} Wörter • ${chars} Zeichen • ca. ${pages} Seite${pages > 1 ? 'n' : ''}`;
+  }
+
+  attachPleadingToCase(caseId) {
+    const c = this.cases.find(item => item.id === caseId);
+    const field = document.getElementById('detailSchriftsatz');
+    if (!c || !field) return;
+    const content = field.value.trim();
+    if (!content) {
+      this.showToast('Bitte zuerst einen Schriftsatz formulieren.', 'error');
+      return;
+    }
+
+    const firstLine = content.split('\n').map(l => l.trim()).find(l => l.length > 0) || 'Schriftsatz';
+    const now = new Date();
+    const timestamp = `${now.toLocaleDateString('de-DE')}, ${now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+
+    if (!Array.isArray(c.pleadingsHistory)) c.pleadingsHistory = [];
+    c.pleadingsHistory.unshift({
+      id: 'pl_' + Date.now(),
+      timestamp,
+      title: firstLine.slice(0, 60),
+      preview: content.replace(/\s+/g, ' ').slice(0, 110) + (content.length > 110 ? '...' : ''),
+      content
+    });
+    c.schriftsatz = field.value;
+    this.saveCases();
+    this.openCaseDetail(caseId, 'schriftsatz');
+    this.showToast('Schriftsatz mit Zeitstempel an Akte angehängt!', 'success');
+  }
+
+  loadPleadingFromHistory(caseId, entryId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c || !Array.isArray(c.pleadingsHistory)) return;
+    const entry = c.pleadingsHistory.find(p => p.id === entryId);
+    const field = document.getElementById('detailSchriftsatz');
+    if (!entry || !field) return;
+    field.value = entry.content;
+    this.updatePleadingStats();
+    this.saveFieldChange(caseId, 'schriftsatz', entry.content);
+    this.showToast('Schriftsatz aus Historie geladen.', 'success');
+  }
+
+  deletePleadingHistory(caseId, entryId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c || !Array.isArray(c.pleadingsHistory)) return;
+    c.pleadingsHistory = c.pleadingsHistory.filter(p => p.id !== entryId);
+    this.saveCases();
+    this.openCaseDetail(caseId, 'schriftsatz');
   }
 
   exportAllDatabase() {
