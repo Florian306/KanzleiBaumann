@@ -971,7 +971,19 @@ class KanzleiApp {
         </div>
       </div>
 
-      <div class="case-main-header">
+      ${c.securityLevel === 'vs' ? `
+        <div style="background: rgba(220, 38, 38, 0.14); border: 1px solid rgba(239, 68, 68, 0.5); border-left: 4px solid #ef4444; color: #fecaca; padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 0.86rem; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.1rem;">🔒</span>
+          <div><strong>VERSCHLUSSSACHE (VS § 203 StGB)</strong> — Strenge anwaltliche Schweigepflicht. Keine Weitergabe an Dritte.</div>
+        </div>
+      ` : c.securityLevel === 'erhoeht' ? `
+        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.45); border-left: 4px solid #f59e0b; color: #fde68a; padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; font-size: 0.86rem; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.1rem;">⚠️</span>
+          <div><strong>ERHÖHTE SICHERHEITSSTUFE</strong> — Sensible Mandatsdaten. Zugriff nur für Kanzleileitung.</div>
+        </div>
+      ` : ''}
+
+      <div class="case-main-header" style="${c.securityLevel === 'vs' ? 'border-color: rgba(239, 68, 68, 0.45);' : c.securityLevel === 'erhoeht' ? 'border-color: rgba(245, 158, 11, 0.45);' : ''}">
         <div class="case-header-info">
           <div class="case-header-az">${c.az}</div>
           <div class="case-header-meta">
@@ -991,7 +1003,7 @@ class KanzleiApp {
           </div>
           <div class="case-status-control">
             <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Sicherheit:</label>
-            <select onchange="app.saveFieldChange('${c.id}', 'securityLevel', this.value)">
+            <select onchange="app.saveFieldChange('${c.id}', 'securityLevel', this.value); app.openCaseDetail('${c.id}');">
               ${secOptions.map(so => `<option value="${so.val}" ${(c.securityLevel || 'normal') === so.val ? 'selected' : ''}>${so.label}</option>`).join('')}
             </select>
           </div>
@@ -1512,6 +1524,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
           <div style="text-align: right;">
             <div style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: #1e3a8a;">AZ: ${c.az}</div>
             <div style="font-size: 0.85rem; color: #64748b;">Berlin, den ${dateNow}</div>
+            ${c.securityLevel === 'vs' ? `<div style="display: inline-block; margin-top: 6px; padding: 2px 8px; border: 1.5px solid #dc2626; color: #dc2626; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; border-radius: 3px;">VS § 203 StGB • STRENG VERTRAULICH</div>` : c.securityLevel === 'erhoeht' ? `<div style="display: inline-block; margin-top: 6px; padding: 2px 8px; border: 1.5px solid #d97706; color: #b45309; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; border-radius: 3px;">VERTRAULICH</div>` : ''}
           </div>
         </div>
 
