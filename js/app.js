@@ -1772,7 +1772,8 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
       return;
     }
 
-    const firstLine = content.split('\n').map(l => l.trim()).find(l => l.length > 0) || 'Schriftsatz';
+    const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const titleLine = (lines[0] && /^An (das|die)$/i.test(lines[0]) && lines[1]) ? lines[1] : (lines[0] || 'Schriftsatz');
     const now = new Date();
     const timestamp = `${now.toLocaleDateString('de-DE')}, ${now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
 
@@ -1780,7 +1781,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     c.pleadingsHistory.unshift({
       id: 'pl_' + Date.now(),
       timestamp,
-      title: firstLine.slice(0, 60),
+      title: titleLine.slice(0, 65),
       preview: content.replace(/\s+/g, ' ').slice(0, 110) + (content.length > 110 ? '...' : ''),
       content
     });
@@ -1794,11 +1795,15 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     const c = this.cases.find(item => item.id === caseId);
     if (!c || !Array.isArray(c.pleadingsHistory)) return;
     const entry = c.pleadingsHistory.find(p => p.id === entryId);
+    if (!entry) return;
+    c.schriftsatz = entry.content;
+    this.saveCases();
     const field = document.getElementById('detailSchriftsatz');
-    if (!entry || !field) return;
-    field.value = entry.content;
-    this.updatePleadingStats();
-    this.saveFieldChange(caseId, 'schriftsatz', entry.content);
+    if (field) {
+      field.value = entry.content;
+      this.updatePleadingStats();
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     this.showToast('Schriftsatz aus Historie geladen.', 'success');
   }
 
