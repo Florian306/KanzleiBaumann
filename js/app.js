@@ -1448,6 +1448,24 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     const modalBody = document.getElementById('officialDocContent');
     if (!modalBody) return;
 
+    const formattedBody = schriftsatzText
+      .split(/\n{2,}/)
+      .map(block => block.trim())
+      .filter(block => {
+        if (!block) return false;
+        if (/^(Berlin,\s*den\s|Unser Zeichen:)/i.test(block)) return false;
+        if (/^(Mit (freundlichen Grüßen|vorzüglicher Hochachtung)|Dr\. jur\. Lars Baumann|Rechtsanwalt)/i.test(block)) return false;
+        return true;
+      })
+      .map(block => {
+        const escaped = this.escapeHtml(block).replace(/\n/g, '<br>');
+        if (/^\s{2,}/.test(block) || /^(EINSPRUCH|vollständige Akteneinsicht|BESCHWERDE|ANTRAG)/i.test(block)) {
+          return `<div style="margin: 14px 0; padding: 10px 16px; background: #f8fafc; border-left: 3px solid #1e3a8a; font-weight: 700; text-align: center; letter-spacing: 0.03em;">${escaped}</div>`;
+        }
+        return `<p style="margin: 0 0 12px 0; text-align: justify; line-height: 1.65;">${escaped}</p>`;
+      })
+      .join('');
+
     modalBody.innerHTML = `
       <div class="official-letterhead-card">
         <div class="letterhead-header" style="align-items: center;">
@@ -1470,7 +1488,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
           Gegenstand: ${c.caseType}
         </div>
 
-        <div class="letterhead-body-text">${this.escapeHtml(schriftsatzText)}</div>
+        <div class="letterhead-body-text" style="white-space: normal;">${formattedBody}</div>
 
         <div class="letterhead-footer-sign">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
