@@ -1455,6 +1455,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
         if (!block) return false;
         if (/^(Berlin,\s*den\s|Unser Zeichen:)/i.test(block)) return false;
         if (/^(Mit (freundlichen Grüßen|vorzüglicher Hochachtung)|Dr\. jur\. Lars Baumann|Rechtsanwalt)/i.test(block)) return false;
+        if (/^(In der Sache:|Strafsache gegen:|Gegenstand:|Wegen:|Vorwurf:)/i.test(block)) return false;
         return true;
       });
 
