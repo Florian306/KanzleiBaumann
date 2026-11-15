@@ -1448,7 +1448,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     const modalBody = document.getElementById('officialDocContent');
     if (!modalBody) return;
 
-    const formattedBody = schriftsatzText
+    const rawBlocks = schriftsatzText
       .split(/\n{2,}/)
       .map(block => block.trim())
       .filter(block => {
@@ -1456,11 +1456,26 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
         if (/^(Berlin,\s*den\s|Unser Zeichen:)/i.test(block)) return false;
         if (/^(Mit (freundlichen Grüßen|vorzüglicher Hochachtung)|Dr\. jur\. Lars Baumann|Rechtsanwalt)/i.test(block)) return false;
         return true;
-      })
+      });
+
+    let recipientHtml = '';
+    const bodyBlocks = [];
+    rawBlocks.forEach((block, idx) => {
+      if (idx === 0 && /^An (das|die)\b/i.test(block)) {
+        recipientHtml = this.escapeHtml(block).replace(/\n/g, '<br>');
+      } else {
+        bodyBlocks.push(block);
+      }
+    });
+
+    const formattedBody = bodyBlocks
       .map(block => {
         const escaped = this.escapeHtml(block).replace(/\n/g, '<br>');
         if (/^\s{2,}/.test(block) || /^(EINSPRUCH|vollständige Akteneinsicht|BESCHWERDE|ANTRAG)/i.test(block)) {
-          return `<div style="margin: 14px 0; padding: 10px 16px; background: #f8fafc; border-left: 3px solid #1e3a8a; font-weight: 700; text-align: center; letter-spacing: 0.03em;">${escaped}</div>`;
+          return `<div style="margin: 16px 0; padding: 10px 18px; background: #f8fafc; border-left: 3px solid #1e3a8a; font-weight: 700; text-align: center; letter-spacing: 0.04em;">${escaped}</div>`;
+        }
+        if (/^(In der Sache:|Strafsache gegen:|Gegenstand:|Wegen:|Vorwurf:)/i.test(block)) {
+          return `<div style="margin: 0 0 14px 0; padding: 10px 14px; background: #f8fafc; border-left: 3px solid #b8862d; font-size: 0.94rem; line-height: 1.5;"><strong>${escaped}</strong></div>`;
         }
         return `<p style="margin: 0 0 12px 0; text-align: justify; line-height: 1.65;">${escaped}</p>`;
       })
@@ -1478,14 +1493,20 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
             </div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">${c.az}</div>
+            <div style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: #1e3a8a;">AZ: ${c.az}</div>
             <div style="font-size: 0.85rem; color: #64748b;">Berlin, den ${dateNow}</div>
           </div>
         </div>
 
-        <div class="letterhead-court-info">
-          In der Sache: <u>${this.escapeHtml(c.clientName)}</u> ./. <u>${this.escapeHtml(c.opponent)}</u><br>
-          Gegenstand: ${c.caseType}
+        ${recipientHtml ? `
+          <div style="margin: 18px 0 22px 0;">
+            <div style="font-size: 0.7rem; color: #64748b; text-decoration: underline; margin-bottom: 4px;">Kanzlei Dr. jur. Lars Baumann • Kurfürstendamm 182 • 10707 Berlin</div>
+            <div style="font-size: 0.98rem; font-weight: 600; color: #0f172a; line-height: 1.45;">${recipientHtml}</div>
+          </div>
+        ` : ''}
+
+        <div class="letterhead-court-info" style="margin-bottom: 18px;">
+          <strong>Betreff:</strong> ${this.escapeHtml(c.clientName)} ./. ${this.escapeHtml(c.opponent)} — <em>${this.escapeHtml(c.caseType)}</em>
         </div>
 
         <div class="letterhead-body-text" style="white-space: normal;">${formattedBody}</div>
@@ -1502,6 +1523,10 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
               Rechtsanwalt
             </div>
           </div>
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.72rem; color: #64748b;">
+          Kanzlei Dr. jur. Lars Baumann • Kurfürstendamm 182 • 10707 Berlin • Tel: 907-999-3919 • E-Mail: baumann@kanzlei-berlin-strafrecht.de
         </div>
       </div>
     `;
