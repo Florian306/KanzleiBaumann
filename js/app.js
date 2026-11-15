@@ -1,14 +1,6 @@
 /**
- * Main Application Controller (High-End Edition)
+ * Main Application Controller (Modular Edition)
  * Kanzlei Dr. jur. Lars Baumann – Berlin
- * 
- * Features:
- * 1. Anpassbare & öffentliche Gebührenordnung
- * 2. Dashcam / Bodycam Timeline-Marker
- * 3. 24h/48h Haftprüfungs- & Fristencountdown
- * 4. RVG Gebührenrechner & Kostennote
- * 5. Bürger-Akteneinsicht & Live-Status-Tracker
- * 6. Offizieller Schriftsatz-Druck mit Kanzleisiegel & Unterschrift
  */
 
 class KanzleiApp {
@@ -31,7 +23,13 @@ class KanzleiApp {
   init() {
     this.updateClock();
     setInterval(() => this.updateClock(), 1000);
+
+    // Dynamic rendering of modular components
+    if (typeof ModalComponents !== 'undefined') {
+      ModalComponents.renderAllModals();
+    }
     this.renderPublicFees();
+    this.renderFAQ();
     this.renderCasesTable();
     this.updateMetrics();
   }
@@ -45,29 +43,15 @@ class KanzleiApp {
     el.textContent = `BERLIN • ${dStr} • ${tStr} UHR`;
   }
 
-  // --- GEBÜHRENORDNUNG (ÖFFENTLICH & BEARBEITBAR) ---
+  // --- GEBÜHRENORDNUNG (DYNAMISCH & MODULAR) ---
   loadFees() {
-    const defaultFees = {
-      erstberatung: 1000,
-      ausfuehrlich: 2500,
-      schriftverkehr: 4000,
-      vergleich: 6000,
-      vertragspruefung: 3500,
-      vertragserstellung: 5000,
-      vernehmung: 7500,
-      strafverteidigung: 12000,
-      zivilklage: 10000,
-      hauptverhandlung: 15000,
-      fahrtpauschale: 1500,
-      dringlichkeitszuschlag: 50
-    };
     try {
       const raw = localStorage.getItem(this.feesKey);
-      if (raw) return { ...defaultFees, ...JSON.parse(raw) };
+      if (raw) return { ...DEFAULT_FEES, ...JSON.parse(raw) };
     } catch (e) {
       console.error('Fees loading error:', e);
     }
-    return defaultFees;
+    return { ...DEFAULT_FEES };
   }
 
   saveFees(newFees) {
@@ -78,33 +62,104 @@ class KanzleiApp {
   }
 
   renderPublicFees() {
+    const container = document.getElementById('feesDynamicContainer');
+    if (!container || typeof FEE_GROUPS === 'undefined') return;
+
     const formatEuro = (num) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(num);
 
-    const fErst = document.getElementById('fee-erstberatung');
-    const fAusf = document.getElementById('fee-ausfuehrlich');
-    const fSchrift = document.getElementById('fee-schriftverkehr');
-    const fVergleich = document.getElementById('fee-vergleich');
-    const fVertragPruef = document.getElementById('fee-vertragspruefung');
-    const fVertragErst = document.getElementById('fee-vertragserstellung');
-    const fVern = document.getElementById('fee-vernehmung');
-    const fStraf = document.getElementById('fee-strafverteidigung');
-    const fZivil = document.getElementById('fee-zivilklage');
-    const fHaupt = document.getElementById('fee-hauptverhandlung');
-    const fFahrt = document.getElementById('fee-fahrtpauschale');
-    const fDring = document.getElementById('fee-dringlichkeitszuschlag');
+    let html = '';
+    FEE_GROUPS.forEach(group => {
+      html += `
+        <div class="fee-group-block">
+          <h3 class="fee-group-title">${group.title}</h3>
+          <div class="fees-grid">
+            ${group.items.map(item => {
+              const val = this.fees[item.id] || 0;
+              let displayPrice = formatEuro(val);
+              if (item.isPercent) displayPrice = `+${val} %`;
+              else if (item.suffix) displayPrice = `${formatEuro(val)}${item.suffix}`;
 
-    if (fErst) fErst.textContent = formatEuro(this.fees.erstberatung);
-    if (fAusf) fAusf.textContent = formatEuro(this.fees.ausfuehrlich);
-    if (fSchrift) fSchrift.textContent = formatEuro(this.fees.schriftverkehr);
-    if (fVergleich) fVergleich.textContent = formatEuro(this.fees.vergleich);
-    if (fVertragPruef) fVertragPruef.textContent = formatEuro(this.fees.vertragspruefung);
-    if (fVertragErst) fVertragErst.textContent = formatEuro(this.fees.vertragserstellung);
-    if (fVern) fVern.textContent = formatEuro(this.fees.vernehmung);
-    if (fStraf) fStraf.textContent = formatEuro(this.fees.strafverteidigung);
-    if (fZivil) fZivil.textContent = formatEuro(this.fees.zivilklage);
-    if (fHaupt) fHaupt.textContent = `${formatEuro(this.fees.hauptverhandlung)} / Tag`;
-    if (fFahrt) fFahrt.textContent = formatEuro(this.fees.fahrtpauschale);
-    if (fDring) fDring.textContent = `+${this.fees.dringlichkeitszuschlag} %`;
+              return `
+                <div class="fee-card ${item.highlight ? 'highlight' : ''}">
+                  <div class="fee-card-top">
+                    <span class="fee-category-badge">${item.badge}</span>
+                    <div class="fee-card-title">${item.title}</div>
+                    <div class="fee-card-desc">${item.desc}</div>
+                  </div>
+                  <div class="fee-card-price" id="fee-${item.id}">${displayPrice}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    });
+
+    // Add Policy Card
+    html += `
+      <div class="fee-policy-card">
+        <div class="fee-policy-header">
+          <span class="fee-policy-icon">📋</span>
+          <div>
+            <h4>Vorschuss & Zahlungsmodalitäten</h4>
+            <p>Verbindliche Richtlinien für die Mandatsabwicklung</p>
+          </div>
+        </div>
+        <div class="fee-policy-grid">
+          <div class="policy-item">
+            <strong>Sonderfälle:</strong> Nicht explizit aufgeführte Leistungen werden unkompliziert im Rahmen einer erweiterten Rechtsberatung oder nach individuellem Aufwand berechnet.
+          </div>
+          <div class="policy-item">
+            <strong>Vorauszahlung / Vorschuss:</strong> Bei bestimmten Mandaten (insbesondere nächtlichen Einsätzen oder vor Gerichtsverhandlungen) kann eine Vorauszahlung vor Tätigkeitsbeginn erhoben werden.
+          </div>
+          <div class="policy-item full">
+            <strong>Zahlungsmittel:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei. <u>Barzahlungen sind grundsätzlich ausgeschlossen.</u>
+          </div>
+        </div>
+        <div class="fee-policy-footer">
+          <span>Hinweis: Abrechnung erfolgt transparent als feste Pauschale pro Leistung nach Mandatsannahme. Keine versteckten Stundensätze.</span>
+          <strong style="color: var(--accent-gold-light);">Kanzleiinhaber Dr. jur. Lars Baumann</strong>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // --- FAQ RENDERING ---
+  renderFAQ() {
+    const container = document.getElementById('faqAccordionContainer');
+    if (!container || typeof FAQ_ITEMS === 'undefined') return;
+
+    container.innerHTML = FAQ_ITEMS.map((faq, idx) => `
+      <div class="faq-item" id="faqItem-${idx}">
+        <div class="faq-question" onclick="app.toggleFAQ(${idx})">
+          <span>${faq.q}</span>
+          <span class="faq-icon" id="faqIcon-${idx}">+</span>
+        </div>
+        <div class="faq-answer" id="faqAnswer-${idx}">
+          <p>${faq.a}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  toggleFAQ(idx) {
+    const answer = document.getElementById(`faqAnswer-${idx}`);
+    const icon = document.getElementById(`faqIcon-${idx}`);
+    const item = document.getElementById(`faqItem-${idx}`);
+    if (!answer || !icon || !item) return;
+
+    const isOpen = item.classList.contains('open');
+    if (isOpen) {
+      item.classList.remove('open');
+      icon.textContent = '+';
+      answer.style.maxHeight = null;
+    } else {
+      item.classList.add('open');
+      icon.textContent = '−';
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+    }
   }
 
   openFeeSettingsModal() {
@@ -112,18 +167,16 @@ class KanzleiApp {
       this.openModal('modalPassword');
       return;
     }
-    document.getElementById('inputFeeErstberatung').value = this.fees.erstberatung || 1000;
-    document.getElementById('inputFeeAusfuehrlich').value = this.fees.ausfuehrlich || 2500;
-    document.getElementById('inputFeeSchriftverkehr').value = this.fees.schriftverkehr || 4000;
-    document.getElementById('inputFeeVergleich').value = this.fees.vergleich || 6000;
-    document.getElementById('inputFeeVertragspruefung').value = this.fees.vertragspruefung || 3500;
-    document.getElementById('inputFeeVertragserstellung').value = this.fees.vertragserstellung || 5000;
-    document.getElementById('inputFeeVernehmung').value = this.fees.vernehmung || 7500;
-    document.getElementById('inputFeeStrafverteidigung').value = this.fees.strafverteidigung || 12000;
-    document.getElementById('inputFeeZivilklage').value = this.fees.zivilklage || 10000;
-    document.getElementById('inputFeeHauptverhandlung').value = this.fees.hauptverhandlung || 15000;
-    document.getElementById('inputFeeFahrtpauschale').value = this.fees.fahrtpauschale || 1500;
-    document.getElementById('inputFeeDringlichkeitszuschlag').value = this.fees.dringlichkeitszuschlag || 50;
+    const ids = [
+      'Erstberatung', 'Ausfuehrlich', 'Schriftverkehr', 'Vergleich',
+      'Vertragspruefung', 'Vertragserstellung', 'Vernehmung', 'Strafverteidigung',
+      'Zivilklage', 'Hauptverhandlung', 'Fahrtpauschale', 'Dringlichkeitszuschlag'
+    ];
+    ids.forEach(capId => {
+      const lowerId = capId.toLowerCase();
+      const el = document.getElementById(`inputFee${capId}`);
+      if (el) el.value = this.fees[lowerId] || DEFAULT_FEES[lowerId] || 0;
+    });
 
     this.openModal('modalEditFees');
   }
@@ -131,18 +184,18 @@ class KanzleiApp {
   handleSaveFees(e) {
     e.preventDefault();
     const updated = {
-      erstberatung: parseFloat(document.getElementById('inputFeeErstberatung').value) || 1000,
-      ausfuehrlich: parseFloat(document.getElementById('inputFeeAusfuehrlich').value) || 2500,
-      schriftverkehr: parseFloat(document.getElementById('inputFeeSchriftverkehr').value) || 4000,
-      vergleich: parseFloat(document.getElementById('inputFeeVergleich').value) || 6000,
-      vertragspruefung: parseFloat(document.getElementById('inputFeeVertragspruefung').value) || 3500,
-      vertragserstellung: parseFloat(document.getElementById('inputFeeVertragserstellung').value) || 5000,
-      vernehmung: parseFloat(document.getElementById('inputFeeVernehmung').value) || 7500,
-      strafverteidigung: parseFloat(document.getElementById('inputFeeStrafverteidigung').value) || 12000,
-      zivilklage: parseFloat(document.getElementById('inputFeeZivilklage').value) || 10000,
-      hauptverhandlung: parseFloat(document.getElementById('inputFeeHauptverhandlung').value) || 15000,
-      fahrtpauschale: parseFloat(document.getElementById('inputFeeFahrtpauschale').value) || 1500,
-      dringlichkeitszuschlag: parseFloat(document.getElementById('inputFeeDringlichkeitszuschlag').value) || 50
+      erstberatung: parseFloat(document.getElementById('inputFeeErstberatung')?.value) || 1000,
+      ausfuehrlich: parseFloat(document.getElementById('inputFeeAusfuehrlich')?.value) || 2500,
+      schriftverkehr: parseFloat(document.getElementById('inputFeeSchriftverkehr')?.value) || 4000,
+      vergleich: parseFloat(document.getElementById('inputFeeVergleich')?.value) || 6000,
+      vertragspruefung: parseFloat(document.getElementById('inputFeeVertragspruefung')?.value) || 3500,
+      vertragserstellung: parseFloat(document.getElementById('inputFeeVertragserstellung')?.value) || 5000,
+      vernehmung: parseFloat(document.getElementById('inputFeeVernehmung')?.value) || 7500,
+      strafverteidigung: parseFloat(document.getElementById('inputFeeStrafverteidigung')?.value) || 12000,
+      zivilklage: parseFloat(document.getElementById('inputFeeZivilklage')?.value) || 10000,
+      hauptverhandlung: parseFloat(document.getElementById('inputFeeHauptverhandlung')?.value) || 15000,
+      fahrtpauschale: parseFloat(document.getElementById('inputFeeFahrtpauschale')?.value) || 1500,
+      dringlichkeitszuschlag: parseFloat(document.getElementById('inputFeeDringlichkeitszuschlag')?.value) || 50
     };
     this.saveFees(updated);
     this.closeModal('modalEditFees');
@@ -213,8 +266,8 @@ class KanzleiApp {
           demands: 'Einstellung des Verfahrens nach § 170 Abs. 2 StPO, Rückgabe des Smartphones, Überprüfung der Rechtmäßigkeit der Maßnahme.',
           notes: 'Dringend Einsicht in das Protokoll der Festnahme anfordern. Amtsgericht Tiergarten zuständig.',
           witnesses: 'Kioskbesitzer H. Demir, Karl-Liebknecht-Straße.',
-          securityLevel: 'vs', // normal, erhoeht, vs
-          deadlineTimestamp: now + (14 * 3600 * 1000), // noch 14 Stunden
+          securityLevel: 'vs',
+          deadlineTimestamp: now + (14 * 3600 * 1000),
           markers: [
             { time: 14, desc: 'Beamter verweigert Nennung der Dienstnummer' },
             { time: 38, desc: 'Smartphone wird aus der Hand gerissen' }
@@ -353,8 +406,16 @@ class KanzleiApp {
   }
 
   scrollToSection(sectionId) {
-    const el = document.getElementById(sectionId);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (this.currentView !== 'portal') {
+      this.navigate('portal');
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   // --- AUTHENTICATION ---
@@ -424,7 +485,7 @@ class KanzleiApp {
       securityLevel: 'normal',
       deadlineTimestamp: null,
       markers: [],
-      feeGrundgebuehr: this.fees.erstberatung || 190,
+      feeGrundgebuehr: this.fees.erstberatung || 1000,
       feeVerfahrensgebuehr: 0,
       feeTerminsgebuehr: 0,
       createdAt: new Date().toISOString(),
@@ -480,8 +541,8 @@ class KanzleiApp {
       securityLevel: 'normal',
       deadlineTimestamp: null,
       markers: [],
-      feeGrundgebuehr: 200,
-      feeVerfahrensgebuehr: 350,
+      feeGrundgebuehr: 1000,
+      feeVerfahrensgebuehr: 4000,
       feeTerminsgebuehr: 0,
       createdAt: new Date().toISOString(),
       filesCount: 0
@@ -518,14 +579,12 @@ class KanzleiApp {
       document.getElementById('trackOpponent').textContent = found.opponent;
       document.getElementById('trackStatusText').textContent = found.status;
 
-      // Update Step Indicators
       const step1 = document.getElementById('trackStep1');
       const step2 = document.getElementById('trackStep2');
       const step3 = document.getElementById('trackStep3');
       const step4 = document.getElementById('trackStep4');
 
       [step1, step2, step3, step4].forEach(s => s.className = 'tracker-step');
-
       step1.classList.add('completed');
 
       if (found.status === 'Eingereicht') {
@@ -852,7 +911,6 @@ class KanzleiApp {
             </div>
           </div>
 
-          <!-- Video Evidence Section with Timeline Markers -->
           <div class="evidence-category-block">
             <div class="evidence-category-header">
               <h4>🎥 Dashcam-, Bodycam- & Videoaufnahmen (${videos.length})</h4>
@@ -872,7 +930,6 @@ class KanzleiApp {
                       <span>${new Date(v.uploadedAt).toLocaleDateString('de-DE')}</span>
                     </div>
 
-                    <!-- Timeline Marker Controls -->
                     <div class="video-annotation-panel">
                       <div style="display: flex; gap: 8px;">
                         <button class="btn btn-secondary btn-sm" onclick="app.addVideoMarker('${c.id}', 'inlineVideoPlayer-${c.id}-${idx}')">
@@ -992,12 +1049,12 @@ class KanzleiApp {
 
           <div class="fee-calc-grid">
             <div class="fee-calc-row">
-              <label>Grundgebühr (§ 14 RVG)</label>
-              <input type="number" id="calcGrundgebuehr" value="${c.feeGrundgebuehr || 200}" onchange="app.updateFeeCalculator('${c.id}')">
+              <label>Grundgebühr</label>
+              <input type="number" id="calcGrundgebuehr" value="${c.feeGrundgebuehr || 1000}" onchange="app.updateFeeCalculator('${c.id}')">
             </div>
             <div class="fee-calc-row">
               <label>Verfahrensgebühr</label>
-              <input type="number" id="calcVerfahrensgebuehr" value="${c.feeVerfahrensgebuehr || 350}" onchange="app.updateFeeCalculator('${c.id}')">
+              <input type="number" id="calcVerfahrensgebuehr" value="${c.feeVerfahrensgebuehr || 4000}" onchange="app.updateFeeCalculator('${c.id}')">
             </div>
             <div class="fee-calc-row">
               <label>Terminsgebühr (Gericht)</label>
@@ -1074,7 +1131,7 @@ class KanzleiApp {
     const c = this.cases.find(item => item.id === caseId);
     if (!c) return;
 
-    c.deadlineTimestamp = Date.now() + (24 * 3600 * 1000); // 24 Stunden Frist
+    c.deadlineTimestamp = Date.now() + (24 * 3600 * 1000);
     this.saveCases();
     this.showToast('24-Stunden-Haftprüfungsfrist gestartet!', 'warning');
     this.startDeadlineCountdown(c);
@@ -1134,7 +1191,7 @@ class KanzleiApp {
     c.feeTerminsgebuehr = t;
     this.saveCases();
 
-    const netto = g + v + t + 20; // 20€ Auslagenpauschale
+    const netto = g + v + t + 20;
     const brutto = netto * 1.19;
 
     const totalEl = document.getElementById('calcTotalInvoice');
@@ -1160,9 +1217,9 @@ Kanzlei Dr. jur. Lars Baumann • Kurfürstendamm 182, 10707 Berlin
 In der Sache: ${c.clientName} vs. ${c.opponent}
 Aktenzeichen: ${c.az}
 
-1. Grundgebühr gem. RVG:           ${g.toFixed(2)} €
-2. Verfahrensgebühr gem. RVG:       ${v.toFixed(2)} €
-3. Terminsgebühr gem. RVG:          ${t.toFixed(2)} €
+1. Grundgebühr:                     ${g.toFixed(2)} €
+2. Verfahrensgebühr:                ${v.toFixed(2)} €
+3. Terminsgebühr:                   ${t.toFixed(2)} €
 4. Post- und Telekommunikation:     ${auslagen.toFixed(2)} €
 --------------------------------------------------------
 Nettobetrag:                        ${netto.toFixed(2)} €
@@ -1170,14 +1227,14 @@ Zzgl. 19% gesetzliche MwSt.:        ${mwst.toFixed(2)} €
 ========================================================
 GESAMTBETRAG:                       ${brutto.toFixed(2)} €
 
-Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann.`;
+Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind ausgeschlossen.`;
 
     navigator.clipboard.writeText(invoiceText).then(() => {
       this.showToast('Kostennote in Zwischenablage kopiert!', 'success');
     });
   }
 
-  // --- OFFIZIELLER SCHRIFTSATZ MIT WACHSSIEGEL & UNTERSCHRIFT ---
+  // --- OFFIZIELLER SCHRIFTSATZ ---
   exportOfficialDocument(caseId) {
     const c = this.cases.find(item => item.id === caseId);
     if (!c) return;

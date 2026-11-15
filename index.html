@@ -44,6 +44,9 @@
         <button class="nav-btn" id="nav-fees" onclick="app.scrollToSection('gebuehren')">
           <span class="icon">💶</span> Gebührenordnung
         </button>
+        <button class="nav-btn" id="nav-faq" onclick="app.scrollToSection('faq')">
+          <span class="icon">❓</span> FAQ
+        </button>
         <button class="nav-btn" id="nav-tracker" onclick="app.navigate('tracker')">
           <span class="icon">🔍</span> Akteneinsicht / Status
         </button>
@@ -144,171 +147,23 @@
           <div class="rule-divider"></div>
         </div>
 
-        <div class="fees-sections-container">
-          <!-- Gruppe 1: Rechtsberatung -->
-          <div class="fee-group-block">
-            <h3 class="fee-group-title">💬 Rechtsberatung & Erstgespräch</h3>
-            <div class="fees-grid">
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Beratung</span>
-                  <div class="fee-card-title">Erstberatung (bis 30 Min.)</div>
-                  <div class="fee-card-desc">Kompakte anwaltliche Ersteinschätzung der Rechtslage, Klärung des Sachverhalts und Prüfung der Erfolgsaussichten.</div>
-                </div>
-                <div class="fee-card-price" id="fee-erstberatung">1.000 €</div>
-              </div>
+        <!-- Dynamisch gerendert aus js/fees-data.js -->
+        <div class="fees-sections-container" id="feesDynamicContainer"></div>
+      </section>
 
-              <div class="fee-card highlight">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Intensiv</span>
-                  <div class="fee-card-title">Ausführliche Rechtsberatung & Aktenprüfung</div>
-                  <div class="fee-card-desc">Tiefgehende Aktenanalyse, juristische Ausarbeitung der Verteidigungsstrategie sowie Vorbereitung formeller Anträge.</div>
-                </div>
-                <div class="fee-card-price" id="fee-ausfuehrlich">2.500 €</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Gruppe 2: Außergerichtliche Vertretung -->
-          <div class="fee-group-block">
-            <h3 class="fee-group-title">✉️ Außergerichtliche Vertretung & Schriftverkehr</h3>
-            <div class="fees-grid">
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Behörden</span>
-                  <div class="fee-card-title">Schriftverkehr Behörden / Polizei</div>
-                  <div class="fee-card-desc">Offizielle Korrespondenz, Stellungnahmen, Schutzschriften und Akteneinsichtsgesuche bei Polizei und Staatsanwaltschaft.</div>
-                </div>
-                <div class="fee-card-price" id="fee-schriftverkehr">4.000 €</div>
-              </div>
-
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Einigung</span>
-                  <div class="fee-card-title">Außergerichtlicher Vergleich & Streitbeilegung</div>
-                  <div class="fee-card-desc">Verhandlungsführung zur Vermeidung eines Gerichtsverfahrens, rechtssichere Einigungsverträge und Schadensregulierung.</div>
-                </div>
-                <div class="fee-card-price" id="fee-vergleich">6.000 €</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Gruppe 3: Vertragsgestaltung & Dokumentenprüfung -->
-          <div class="fee-group-block">
-            <h3 class="fee-group-title">📑 Vertragsgestaltung & Dokumentenprüfung</h3>
-            <div class="fees-grid">
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Prüfung</span>
-                  <div class="fee-card-title">Arbeits- & Dienstverträge</div>
-                  <div class="fee-card-desc">Prüfung und Anpassung bestehender Vertragswerke pro Dokument / Entwurf auf rechtliche Fallstricke und Konformität.</div>
-                </div>
-                <div class="fee-card-price" id="fee-vertragspruefung">3.500 €</div>
-              </div>
-
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Erstellung</span>
-                  <div class="fee-card-title">Maßgeschneiderte Vertragswerke</div>
-                  <div class="fee-card-desc">Individuelle Neuerstellung exklusiver Verträge mit lückenlosem Haftungsschutz, Klauselsicherheit und Kündigungsregelungen.</div>
-                </div>
-                <div class="fee-card-price" id="fee-vertragserstellung">5.000 €</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Gruppe 4: Straf- & Zivilmandat -->
-          <div class="fee-group-block">
-            <h3 class="fee-group-title">🛡️ Straf- & Zivilmandat (Verteidigung)</h3>
-            <div class="fees-grid">
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Gewahrsam</span>
-                  <div class="fee-card-title">Vernehmung / Polizeigewahrsam</div>
-                  <div class="fee-card-desc">Sofortiger anwaltlicher Beistand bei polizeilichen Vernehmungen, Vorführungen und Schutz vor unzulässigen Befragungen.</div>
-                </div>
-                <div class="fee-card-price" id="fee-vernehmung">7.500 €</div>
-              </div>
-
-              <div class="fee-card highlight">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Vollmandat</span>
-                  <div class="fee-card-title">Komplette Strafverteidigung</div>
-                  <div class="fee-card-desc">Vollumfängliche Vertretung im Ermittlungs- und Zwischenverfahren inklusive Akteneinsicht und Einstellungsantrag gem. § 170 StPO.</div>
-                </div>
-                <div class="fee-card-price" id="fee-strafverteidigung">12.000 €</div>
-              </div>
-
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Zivilrecht</span>
-                  <div class="fee-card-title">Zivilrechtliche Klagevertretung</div>
-                  <div class="fee-card-desc">Geltendmachung oder Abwehr von Schadensersatz-, Schmerzensgeld- und Vermögensansprüchen vor Gericht.</div>
-                </div>
-                <div class="fee-card-price" id="fee-zivilklage">10.000 €</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Gruppe 5: Gericht & Nebenkosten -->
-          <div class="fee-group-block">
-            <h3 class="fee-group-title">🏛️ Gerichtliche Hauptverhandlung & Nebenkosten</h3>
-            <div class="fees-grid">
-              <div class="fee-card highlight">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Prozesstag</span>
-                  <div class="fee-card-title">Termingebühr Hauptverhandlung</div>
-                  <div class="fee-card-desc">Gerichtssaal-Vertretung durch Dr. jur. Lars Baumann (fällig pro angetretenem Verhandlungstag am AG Tiergarten / LG Berlin).</div>
-                </div>
-                <div class="fee-card-price" id="fee-hauptverhandlung">15.000 € / Tag</div>
-              </div>
-
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Pauschale</span>
-                  <div class="fee-card-title">Fahrt- & Einsatzpauschale</div>
-                  <div class="fee-card-desc">Pauschale für Vor-Ort-Termine, Revierbesuche in Berliner Polizeiabschnitten und Ortstermine.</div>
-                </div>
-                <div class="fee-card-price" id="fee-fahrtpauschale">1.500 €</div>
-              </div>
-
-              <div class="fee-card">
-                <div class="fee-card-top">
-                  <span class="fee-category-badge">Einsatz Eil</span>
-                  <div class="fee-card-title">Dringlichkeitszuschlag</div>
-                  <div class="fee-card-desc">Für Nachteinsätze und Sofort-Vertretungen mit weniger als 2 Stunden Vorlaufzeit (auf den jeweiligen Grundpreis).</div>
-                </div>
-                <div class="fee-card-price" id="fee-dringlichkeitszuschlag">+50 %</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Vorschuss & Zahlungsmodalitäten Kasten -->
-          <div class="fee-policy-card">
-            <div class="fee-policy-header">
-              <span class="fee-policy-icon">📋</span>
-              <div>
-                <h4>Vorschuss & Zahlungsmodalitäten</h4>
-                <p>Verbindliche Richtlinien für die Mandatsabwicklung</p>
-              </div>
-            </div>
-            <div class="fee-policy-grid">
-              <div class="policy-item">
-                <strong>Sonderfälle:</strong> Nicht explizit aufgeführte Leistungen werden unkompliziert im Rahmen einer erweiterten Rechtsberatung oder nach individuellem Aufwand berechnet.
-              </div>
-              <div class="policy-item">
-                <strong>Vorauszahlung / Vorschuss:</strong> Bei bestimmten Mandaten (insbesondere nächtlichen Einsätzen oder vor Gerichtsverhandlungen) kann eine Vorauszahlung vor Tätigkeitsbeginn erhoben werden.
-              </div>
-              <div class="policy-item full">
-                <strong>Zahlungsmittel:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei. <u>Barzahlungen sind grundsätzlich ausgeschlossen.</u>
-              </div>
-            </div>
-            <div class="fee-policy-footer">
-              <span>Hinweis: Abrechnung erfolgt transparent als feste Pauschale pro Leistung nach Mandatsannahme. Keine versteckten Stundensätze.</span>
-              <strong style="color: var(--accent-gold-light);">Kanzleiinhaber Dr. jur. Lars Baumann</strong>
-            </div>
-          </div>
+      <!-- ================= HÄUFIG GESTELLTE FRAGEN (FAQ) ================= -->
+      <section class="content-block" id="faq">
+        <div class="section-header">
+          <span class="section-eyebrow">ANTWORTEN ZUR MANDATIERUNG</span>
+          <h2>Häufig gestellte Fragen (FAQ)</h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 8px; max-width: 720px; margin-left: auto; margin-right: auto;">
+            Wichtige Hinweise zum Verfahrensablauf, Vernehmungen der Polizei Berlin und Notfalleinsätzen.
+          </p>
+          <div class="rule-divider"></div>
         </div>
+
+        <!-- Dynamisch gerendert aus js/fees-data.js -->
+        <div class="faq-container" id="faqAccordionContainer"></div>
       </section>
 
       <!-- CTA Banner -->
@@ -610,235 +465,15 @@
 
   </main>
 
-  <!-- ================= MODALS ================= -->
-
-  <!-- Password Modal -->
-  <div class="modal-backdrop" id="modalPassword">
-    <div class="modal-card modal-sm">
-      <div class="modal-header">
-        <div class="modal-seal">🔒</div>
-        <h3>Kanzlei-Interna Authentifizierung</h3>
-        <p class="modal-sub">Geschützter Arbeitsplatz für Dr. jur. Lars Baumann.</p>
-      </div>
-      <form onsubmit="app.handleAuthSubmit(event)">
-        <div class="input-group">
-          <label for="authPassword">Kanzlei-Passwort</label>
-          <input type="password" id="authPassword" placeholder="Passwort eingeben (Default: baumann2026)" required autofocus>
-          <small class="helper-text">Standard-Zugangspasswort: <code>baumann2026</code></small>
-        </div>
-        <div id="authErrorMsg" class="form-alert error" style="display: none;">Falsches Passwort! Zugriff verweigert.</div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalPassword')">Abbrechen</button>
-          <button type="submit" class="btn btn-primary">Entsperren</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- EDIT FEES MODAL (Gebühren anpassen) -->
-  <div class="modal-backdrop" id="modalEditFees">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <div class="modal-seal">💶</div>
-        <h3>Gebührensätze anpassen (Dr. Lars Baumann)</h3>
-        <p class="modal-sub">Diese Sätze werden sofort in der öffentlichen Kanzleitabelle und im RVG-Rechner aktualisiert.</p>
-      </div>
-      <form onsubmit="app.handleSaveFees(event)">
-        <div class="form-grid">
-          <div class="input-group">
-            <label for="inputFeeErstberatung">Erstberatung (bis 30 Min.) (€) *</label>
-            <input type="number" id="inputFeeErstberatung" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeAusfuehrlich">Ausführliche Beratung & Aktenprüfung (€) *</label>
-            <input type="number" id="inputFeeAusfuehrlich" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeSchriftverkehr">Schriftverkehr Behörden / Polizei (€) *</label>
-            <input type="number" id="inputFeeSchriftverkehr" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeVergleich">Vergleich & Streitbeilegung (€) *</label>
-            <input type="number" id="inputFeeVergleich" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeVertragspruefung">Prüfung Arbeits- & Dienstverträge (€) *</label>
-            <input type="number" id="inputFeeVertragspruefung" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeVertragserstellung">Maßgeschneiderte Vertragswerke (€) *</label>
-            <input type="number" id="inputFeeVertragserstellung" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeVernehmung">Vernehmung / Polizeigewahrsam (€) *</label>
-            <input type="number" id="inputFeeVernehmung" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeStrafverteidigung">Komplette Strafverteidigung (€) *</label>
-            <input type="number" id="inputFeeStrafverteidigung" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeZivilklage">Zivilrechtliche Klagevertretung (€) *</label>
-            <input type="number" id="inputFeeZivilklage" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeHauptverhandlung">Termingebühr Hauptverhandlung (€/Tag) *</label>
-            <input type="number" id="inputFeeHauptverhandlung" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeFahrtpauschale">Fahrt- & Einsatzpauschale (€) *</label>
-            <input type="number" id="inputFeeFahrtpauschale" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeDringlichkeitszuschlag">Dringlichkeitszuschlag (% auf Grundpreis) *</label>
-            <input type="number" id="inputFeeDringlichkeitszuschlag" required min="0">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalEditFees')">Abbrechen</button>
-          <button type="submit" class="btn btn-primary">Gebührensätze speichern</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Manual Case Modal -->
-  <div class="modal-backdrop" id="modalNewCase">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <div class="modal-seal">📁</div>
-        <h3>Manuelle Aktenanlage Berlin (Direktmandat)</h3>
-        <p class="modal-sub">Legt unmittelbar eine neue Akte mit dem passenden Berliner Fach-Aktenzeichen an.</p>
-      </div>
-      <form onsubmit="app.handleCreateCaseModal(event)">
-        <div class="form-grid">
-          <div class="input-group">
-            <label for="mClientName">Name des Mandanten *</label>
-            <input type="text" id="mClientName" required placeholder="z. B. Jonas Weber">
-          </div>
-          <div class="input-group">
-            <label for="mClientPhone">Telefon / Kontakt *</label>
-            <input type="text" id="mClientPhone" required placeholder="z. B. 0172 / 9912044">
-          </div>
-          <div class="input-group">
-            <label for="mOpponent">Gegenseite (Berliner Behörde / Person) *</label>
-            <input type="text" id="mOpponent" required placeholder="z. B. Polizei Berlin Direktion 2">
-          </div>
-          <div class="input-group">
-            <label for="mCaseType">Falltyp / Rechtsgebiet *</label>
-            <select id="mCaseType" required>
-              <option value="Strafverteidigung">Strafverteidigung [StR]</option>
-              <option value="Polizeirecht / Dienstbeschwerde">Polizeirecht / Dienstbeschwerde [PolR]</option>
-              <option value="Zivilrecht / Schadensersatz">Zivilrecht [Ziv]</option>
-              <option value="Waffen- & Lizenzrecht">Waffen- & Lizenzrecht [WaffR]</option>
-              <option value="Dienstaufsicht">Dienstaufsicht [IAD]</option>
-              <option value="Sonstiges">Sonstiges</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="mStatus">Initialer Status</label>
-            <select id="mStatus">
-              <option value="In Bearbeitung" selected>In Bearbeitung</option>
-              <option value="Eingereicht">Eingereicht</option>
-              <option value="Vor Gericht">Vor Gericht</option>
-              <option value="Archiviert">Archiviert</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="mIncidentDate">Tatzeit / Vorfallort in Berlin</label>
-            <input type="text" id="mIncidentDate" placeholder="z. B. Gestern Nacht, Berlin-Neukölln">
-          </div>
-          <div class="input-group full-width">
-            <label for="mDescription">Sachverhalt & Vorwürfe *</label>
-            <textarea id="mDescription" rows="4" required placeholder="Erste Fallschilderung, Tatvorwurf, Kaution..."></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalNewCase')">Abbrechen</button>
-          <button type="submit" class="btn btn-primary">Akte anlegen & öffnen</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Custom Success Modal -->
-  <div class="modal-backdrop" id="modalSubmissionSuccess">
-    <div class="modal-card modal-sm success-modal-card">
-      <div class="success-seal-badge">✓</div>
-      <h3>Mandat erfolgreich registriert!</h3>
-      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
-        Kanzlei Dr. jur. Lars Baumann • Berlin
-      </p>
-      <div class="success-az-box" id="successModalAz">104/26 StR</div>
-      <p class="success-info-text" id="successModalDesc">
-        Ihre Akte wurde verbindlich im Kanzleiregister aufgenommen. Es gilt das strenge Eingangsprinzip der Kanzleiordnung („Wer zuerst kommt, mahlt zuerst“).
-      </p>
-      <div class="modal-footer" style="justify-content: center; border: none; padding-top: 0;">
-        <button type="button" class="btn btn-primary" onclick="app.closeModal('modalSubmissionSuccess')">
-          Verstanden & Schließen
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- OFFIZIELLER SCHRIFTSATZ MODAL (Mit Siegel & Unterschrift) -->
-  <div class="modal-backdrop" id="modalOfficialDocument">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <div class="modal-seal">📜</div>
-        <h3>Offizieller Schriftsatz zur gerichtlichen Vorlage</h3>
-        <p class="modal-sub">Druckansicht mit digitalem Kanzlei-Siegel und Signatur von Dr. jur. Lars Baumann.</p>
-      </div>
-      <div id="officialDocContent">
-        <!-- Rendered dynamically via app.exportOfficialDocument -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" onclick="window.print()">
-          <span>🖨️ Schriftsatz drucken / Als PDF speichern</span>
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalOfficialDocument')">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Lightbox Modal -->
-  <div class="modal-backdrop lightbox-backdrop" id="modalLightbox" onclick="app.closeLightbox(event)">
-    <div class="lightbox-container" onclick="event.stopPropagation()">
-      <div class="lightbox-header">
-        <span id="lightboxTitle">Beweisfoto</span>
-        <button class="close-btn" onclick="app.closeModal('modalLightbox')">✕</button>
-      </div>
-      <div class="lightbox-body">
-        <img id="lightboxImage" src="" alt="Beweis-Vollansicht">
-      </div>
-      <div class="lightbox-footer">
-        <span id="lightboxMeta"></span>
-        <button class="btn btn-secondary btn-sm" id="lightboxDownloadBtn">Herunterladen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Video Player Modal -->
-  <div class="modal-backdrop lightbox-backdrop" id="modalVideoPlayer" onclick="app.closeVideoModal(event)">
-    <div class="lightbox-container video-modal-container" onclick="event.stopPropagation()">
-      <div class="lightbox-header">
-        <span id="videoModalTitle">Beweisvideo / Bodycam-Footage</span>
-        <button class="close-btn" onclick="app.closeVideoModal()">✕</button>
-      </div>
-      <div class="video-modal-body">
-        <video id="activeBeweisPlayer" controls autoplay style="width: 100%; max-height: 70vh; background: #000;"></video>
-      </div>
-      <div class="lightbox-footer">
-        <span id="videoModalMeta"></span>
-        <button class="btn btn-secondary btn-sm" id="videoDownloadBtn">Original herunterladen</button>
-      </div>
-    </div>
-  </div>
+  <!-- ================= MODALS CONTAINER (Dynamisch aus js/modals.js gerendert) ================= -->
+  <div id="modalsContainer"></div>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Modular Scripts -->
+  <script src="js/fees-data.js"></script>
+  <script src="js/modals.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/templates.js"></script>
   <script src="js/app.js"></script>
