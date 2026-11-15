@@ -89,12 +89,19 @@ class KanzleiApp {
   async syncCaseToCloud(c) {
     if (!c) return;
     try {
-      await fetch('/api/cases', {
+      const res = await fetch('/api/cases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(c)
       });
-    } catch (e) { /* Ignore offline */ }
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('Cloud sync failed:', res.status, errText);
+        this.showToast(`DB-Fehler (${res.status}) beim Speichern!`, 'error');
+      }
+    } catch (e) {
+      console.error('Cloud sync error:', e);
+    }
   }
 
   async syncSettingToCloud(key, value) {
@@ -1788,7 +1795,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     statsEl.textContent = `${words} Wörter • ${chars} Zeichen • ca. ${pages} Seite${pages > 1 ? 'n' : ''}`;
   }
 
-  attachPleadingToCase(caseId) {
+  async attachPleadingToCase(caseId) {
     const c = this.cases.find(item => item.id === caseId);
     const field = document.getElementById('detailSchriftsatz');
     if (!c || !field) return;
@@ -1812,7 +1819,9 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
       content
     });
     c.schriftsatz = field.value;
-    this.saveCases(c);
+    localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
+    this.updateMetrics();
+    await this.syncCaseToCloud(c);
     this.openCaseDetail(caseId, 'schriftsatz');
     this.showToast('Schriftsatz mit Zeitstempel an Akte angehängt!', 'success');
   }
