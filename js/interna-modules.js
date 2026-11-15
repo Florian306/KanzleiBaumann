@@ -260,6 +260,9 @@ const InternaModules = {
   addFinanceEntry(e) {
     e.preventDefault();
     const client = document.getElementById('finClient').value.trim();
+    const clientPhone = document.getElementById('finClientPhone')?.value.trim() || '';
+    const clientAddress = document.getElementById('finClientAddress')?.value.trim() || '';
+    const caseRef = document.getElementById('finCaseRef')?.value.trim() || '';
     const amount = parseFloat(document.getElementById('finAmount').value) || 0;
     const status = document.getElementById('finStatus').value;
     const breakdown = this.updateFinanceBreakdown();
@@ -275,7 +278,7 @@ const InternaModules = {
     list.unshift({
       id: 'fin_' + Date.now(),
       invoiceNo,
-      client, desc, breakdown, amount, status,
+      client, clientPhone, clientAddress, caseRef, desc, breakdown, amount, status,
       date: new Date().toLocaleDateString('de-DE')
     });
     this.saveFinances(list);
@@ -382,6 +385,9 @@ const InternaModules = {
         <div class="letterhead-court-info" style="margin-bottom: 24px;">
           <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase;">Rechnungsempfänger / Mandant:</span><br>
           <strong style="font-size: 1.15rem;">${app.escapeHtml(item.client)}</strong>
+          ${item.clientAddress ? `<div style="font-size: 0.92rem; color: #334155; margin-top: 2px;">${app.escapeHtml(item.clientAddress)}</div>` : ''}
+          ${item.clientPhone ? `<div style="font-size: 0.9rem; color: #475569; margin-top: 2px;">Tel: ${app.escapeHtml(item.clientPhone)}</div>` : ''}
+          ${item.caseRef ? `<div style="font-size: 0.88rem; color: #1e3a8a; font-weight: 600; margin-top: 4px;">Aktenzeichen: ${app.escapeHtml(item.caseRef)}</div>` : ''}
         </div>
 
         <h3 style="font-size: 1.25rem; margin-bottom: 12px; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">
@@ -418,8 +424,9 @@ const InternaModules = {
         </div>
 
         <div class="letterhead-footer-sign">
-          <div class="wax-seal">
-            <span>§</span>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <img src="assets/logo.jpg" alt="Kanzleisiegel Dr. jur. Lars Baumann" style="width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 2px solid #b8862d; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);">
+            <span style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; font-weight: 600;">Kanzleisiegel</span>
           </div>
           <div class="signature-block">
             <div class="signature-svg">Dr. Lars Baumann</div>
