@@ -9,7 +9,7 @@ const ModalComponents = {
     if (!container) return;
 
     container.innerHTML = `
-      <!-- Password Modal -->
+      <!-- Password / Discord Auth Modal -->
       <div class="modal-backdrop" id="modalPassword">
         <div class="modal-card modal-sm">
           <div class="modal-header">
@@ -17,18 +17,18 @@ const ModalComponents = {
             <h3>Kanzlei-Interna Authentifizierung</h3>
             <p class="modal-sub">Geschützter Arbeitsplatz für Dr. jur. Lars Baumann.</p>
           </div>
-          <form onsubmit="app.handleAuthSubmit(event)">
-            <div class="input-group">
-              <label for="authPassword">Kanzlei-Passwort</label>
-              <input type="password" id="authPassword" placeholder="Passwort eingeben (Default: baumann2026)" required autofocus>
-              <small class="helper-text">Standard-Zugangspasswort: <code>baumann2026</code></small>
-            </div>
-            <div id="authErrorMsg" class="form-alert error" style="display: none;">Falsches Passwort! Zugriff verweigert.</div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalPassword')">Abbrechen</button>
-              <button type="submit" class="btn btn-primary">Entsperren</button>
-            </div>
-          </form>
+          <div style="padding: 10px 0 6px;">
+            <a href="/api/auth/discord" class="btn" style="width: 100%; background: #5865F2; color: #ffffff; font-weight: 700; padding: 13px 18px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; box-shadow: 0 4px 16px rgba(88, 101, 242, 0.35);">
+              <span>💬 Mit Discord anmelden</span>
+            </a>
+            <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 12px; line-height: 1.5;">
+              Der Zugang ist ausschließlich für autorisierte Kanzlei-Inhaber freigeschaltet.
+            </p>
+          </div>
+          <div id="authErrorMsg" class="form-alert error" style="display: none; margin-top: 12px;">Zugriff verweigert! Dieser Discord-Account ist nicht autorisiert.</div>
+          <div class="modal-footer" style="margin-top: 16px;">
+            <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="app.closeModal('modalPassword')">Abbrechen</button>
+          </div>
         </div>
       </div>
 

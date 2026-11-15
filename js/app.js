@@ -39,7 +39,25 @@ class KanzleiApp {
     if (typeof InternaModules !== 'undefined') {
       InternaModules.init();
     }
+    this.handleDiscordAuthCallback();
     this.syncFromCloud();
+  }
+
+  handleDiscordAuthCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const auth = params.get('auth');
+    if (!auth) return;
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    if (auth === 'ok') {
+      sessionStorage.setItem(this.authKey, 'true');
+      this.showToast('Angemeldet: Dr. jur. Lars Baumann (Discord verifiziert)', 'success');
+      this.navigate('dashboard');
+    } else if (auth === 'denied') {
+      this.showToast('Zugriff verweigert! Dieser Discord-Account ist nicht autorisiert.', 'error');
+    } else if (auth === 'error') {
+      this.showToast('Discord-Anmeldung fehlgeschlagen. Bitte erneut versuchen.', 'error');
+    }
   }
 
   async syncFromCloud() {
