@@ -447,6 +447,9 @@
             <button class="btn btn-secondary" onclick="app.exportAllDatabase()">
               <span>💾 DB Backup Export</span>
             </button>
+            <button class="btn btn-danger-outline" onclick="app.clearAllCasesPrompt()" title="Alle Akten leeren">
+              <span>🗑️ Akten leeren</span>
+            </button>
             <button class="btn btn-primary" onclick="app.openNewCaseModal()">
               <span>+ Neue Akte anlegen</span>
             </button>
@@ -541,9 +544,12 @@
             </tbody>
           </table>
           <div id="tableEmptyNotice" class="empty-state" style="display: none;">
-            <div class="empty-icon">🗂️</div>
-            <h4>Keine Akten gefunden</h4>
-            <p>Es entsprechen keine Akten den Filterkriterien oder es wurden noch keine Fälle erfasst.</p>
+            <div class="empty-seal">⚖️</div>
+            <h4>Keine laufenden Mandate erfasst</h4>
+            <p>Das digitale Fallregister der Kanzlei Dr. jur. Lars Baumann ist derzeit leer. Neue Mandate erscheinen hier automatisch nach Eingang oder können manuell angelegt werden.</p>
+            <div style="margin-top: 16px;">
+              <button class="btn btn-primary btn-sm" onclick="app.openNewCaseModal()">+ Erste Akte anlegen</button>
+            </div>
           </div>
         </div>
       </div>

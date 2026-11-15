@@ -20,7 +20,7 @@ class KanzleiApp {
     this.discordWebhookUrl = localStorage.getItem(this.webhookKey) || '';
     this.cases = this.loadCases();
     this.pubSelectedFiles = []; // Temporary storage for public case submission attachments
-    this.initBerlinDemoDataIfEmpty();
+    this.clearDemoCasesOnce(); // Remove legacy demo cases if user desires clean live database
   }
 
   init() {
@@ -263,140 +263,14 @@ class KanzleiApp {
     return `${nextNum}/${yearShort} ${code}`;
   }
 
-  initBerlinDemoDataIfEmpty() {
-    if (this.cases.length === 0) {
-      const now = Date.now();
-      const demoCases = [
-        {
-          id: 'case_berlin_01',
-          az: '101/26 StR',
-          clientName: 'Alexander Wendt',
-          clientPhone: '0171 / 8920144',
-          opponent: 'Polizei Berlin – Abschnitt 32 (Mitte / Wedding)',
-          caseType: 'Strafverteidigung',
-          status: 'In Bearbeitung',
-          incidentDate: '02.11.2026, 23:45 Uhr (Alexanderplatz / Dircksenstraße)',
-          description: 'Mandant wurde im Rahmen einer verdachtsunabhängigen Kontrolle in der kriminalitätsbelasteten Zone (kbO) Alexanderplatz festgesetzt. Es erfolgte eine Leibesvisitation und die Beschlagnahme seines Smartphones ohne richterliche Anordnung. Vorwurf: Widerstand gegen Vollstreckungsbeamte.',
-          demands: 'Einstellung des Verfahrens nach § 170 Abs. 2 StPO, Rückgabe des Smartphones, Überprüfung der Rechtmäßigkeit der Maßnahme.',
-          notes: 'Dringend Einsicht in das Protokoll der Festnahme anfordern. Amtsgericht Tiergarten zuständig.',
-          witnesses: 'Kioskbesitzer H. Demir, Karl-Liebknecht-Straße.',
-          securityLevel: 'vs',
-          deadlineTimestamp: now + (14 * 3600 * 1000),
-          markers: [
-            { time: 14, desc: 'Beamter verweigert Nennung der Dienstnummer' },
-            { time: 38, desc: 'Smartphone wird aus der Hand gerissen' }
-          ],
-          feeGrundgebuehr: 220,
-          feeVerfahrensgebuehr: 380,
-          feeTerminsgebuehr: 450,
-          schriftsatz: SchriftsatzTemplates.getHaftbeschwerde({
-            az: '101/26 StR',
-            clientName: 'Alexander Wendt',
-            opponent: 'Polizei Berlin Abschnitt 32'
-          }, new Date().toLocaleDateString('de-DE')),
-          createdAt: new Date(now - 86400000 * 2).toISOString(),
-          filesCount: 2
-        },
-        {
-          id: 'case_berlin_02',
-          az: '102/26 PolR',
-          clientName: 'Miriam Al-Hassan',
-          clientPhone: '0152 / 4490123',
-          opponent: 'Polizeidirektion 5 (City West / Kreuzberg)',
-          caseType: 'Polizeirecht / Dienstbeschwerde',
-          status: 'Eingereicht',
-          incidentDate: '03.11.2026, 18:20 Uhr (Görlitzer Park)',
-          description: 'Einsatzkräfte führten eine Durchsuchung der Mandantin und ihrer Begleitung durch. Trotz Vorzeigen des Personalausweises wurde sie 3 Stunden im Mannschaftswagen festgehalten.',
-          demands: 'Feststellung der Rechtswidrigkeit, Löschung der polizeilichen Erkennungsdaten, Entschädigung nach ASOG Berlin.',
-          notes: 'Dienstaufsichtsbeschwerde an den Polizeipräsidenten vorbereiten.',
-          witnesses: 'Zeugin Sara K., Reichenberger Str.',
-          securityLevel: 'erhoeht',
-          deadlineTimestamp: null,
-          markers: [],
-          feeGrundgebuehr: 190,
-          feeVerfahrensgebuehr: 350,
-          feeTerminsgebuehr: 0,
-          schriftsatz: '',
-          createdAt: new Date(now - 86400000 * 1).toISOString(),
-          filesCount: 1
-        },
-        {
-          id: 'case_berlin_03',
-          az: '103/26 WaffR',
-          clientName: 'SpreeLogistik Express GmbH',
-          clientPhone: '030 / 552099-0',
-          opponent: 'Landesamt für Bürger- und Ordnungsangelegenheiten (LABO)',
-          caseType: 'Waffen- & Lizenzrecht',
-          status: 'Vor Gericht',
-          incidentDate: '26.10.2026',
-          description: 'Entzug der Transportkonzession für Werttransporte wegen unverschuldeter bürokratischer Verzögerung bei der Zuverlässigkeitsprüfung.',
-          demands: 'Eilantrag beim Verwaltungsgericht Berlin (Kirchstraße 7).',
-          notes: 'Verhandlungstermin für nächste Woche terminiert.',
-          witnesses: 'Geschäftsführer Bernd Kowalski',
-          securityLevel: 'normal',
-          deadlineTimestamp: null,
-          markers: [],
-          feeGrundgebuehr: 300,
-          feeVerfahrensgebuehr: 500,
-          feeTerminsgebuehr: 600,
-          schriftsatz: '',
-          createdAt: new Date(now - 86400000 * 5).toISOString(),
-          filesCount: 0
-        }
-      ];
-
-      this.cases = demoCases;
+  clearDemoCasesOnce() {
+    // Filter out the initial 3 demo mock cases (Alexander Wendt, Miriam Al-Hassan, SpreeLogistik)
+    const demoIds = ['case_berlin_01', 'case_berlin_02', 'case_berlin_03'];
+    const hasDemo = this.cases.some(c => demoIds.includes(c.id));
+    if (hasDemo) {
+      this.cases = this.cases.filter(c => !demoIds.includes(c.id));
       this.saveCases();
-      this.injectDemoFiles();
     }
-  }
-
-  async injectDemoFiles() {
-    const sampleCanvas = document.createElement('canvas');
-    sampleCanvas.width = 400;
-    sampleCanvas.height = 300;
-    const ctx = sampleCanvas.getContext('2d');
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(0, 0, 400, 300);
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(10, 10, 380, 280);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px Inter, sans-serif';
-    ctx.fillText('TATORT-DOKUMENTATION BERLIN', 20, 40);
-    ctx.font = '13px monospace';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Alexanderplatz / U-Bahnhof', 20, 70);
-    ctx.fillText('Zeit: 02.11.2026 23:50:11 Uhr', 20, 95);
-    ctx.fillStyle = '#ef4444';
-    ctx.fillRect(30, 130, 100, 80);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '12px Inter';
-    ctx.fillText('Abschnitt 32', 40, 175);
-
-    const dataUrl = sampleCanvas.toDataURL('image/png');
-
-    await this.storage.saveFile({
-      id: 'demo_file_img_1',
-      caseId: 'case_berlin_01',
-      name: 'Beweisfoto_Alex_Festnahme.png',
-      type: 'image/png',
-      category: 'image',
-      size: 42100,
-      data: dataUrl,
-      uploadedAt: new Date().toISOString()
-    });
-
-    await this.storage.saveFile({
-      id: 'demo_file_pdf_1',
-      caseId: 'case_berlin_01',
-      name: 'Durchsuchungsprotokoll_Polizei_Berlin.pdf',
-      type: 'application/pdf',
-      category: 'document',
-      size: 154200,
-      data: 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXr...',
-      uploadedAt: new Date().toISOString()
-    });
   }
 
   // --- NAVIGATION ---
@@ -897,6 +771,7 @@ class KanzleiApp {
       let secTag = '<span class="sec-level-pill sec-normal">Normal</span>';
       if (c.securityLevel === 'erhoeht') secTag = '<span class="sec-level-pill sec-erhoeht">Erhöht</span>';
       if (c.securityLevel === 'vs') secTag = '<span class="sec-level-pill sec-vs">VS-Vertraulich</span>';
+      if (c.securityLevel === 'notfall') secTag = '<span class="sec-level-pill sec-notfall">🚨 EILBEDARF</span>';
 
       tr.innerHTML = `
         <td>
@@ -1543,6 +1418,21 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
       this.saveCases();
       this.showToast(`Akte ${c.az} vernichtet.`, 'info');
       this.navigate('dashboard');
+    }
+  }
+
+  clearAllCasesPrompt() {
+    if (this.cases.length === 0) {
+      this.showToast('Das Aktenregister ist bereits leer.', 'info');
+      return;
+    }
+    const entered = prompt('ACHTUNG: Möchten Sie wirklich ALLE Akten aus dem Kanzleiregister löschen?\n\nGeben Sie zur Bestätigung "LEEREN" ein:');
+    if (entered === 'LEEREN') {
+      this.cases = [];
+      this.saveCases();
+      this.renderCasesTable();
+      this.updateMetrics();
+      this.showToast('Alle Akten wurden vollständig aus dem Register entfernt.', 'success');
     }
   }
 

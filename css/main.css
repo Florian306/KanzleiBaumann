@@ -1628,20 +1628,22 @@ html, body {
   border-top: 1px solid var(--border-color);
 }
 
-/* Dashboard Wrapper & Tables */
+/* ================= ENHANCED DASHBOARD STYLING ================= */
 .dashboard-wrapper {
-  max-width: 1500px;
+  max-width: 1540px;
   margin: 30px auto 80px;
-  padding: 0 24px;
+  padding: 0 28px;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 28px;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
 .internal-tag {
@@ -1655,75 +1657,89 @@ html, body {
 
 .dashboard-header h2 {
   font-family: var(--font-heading);
-  font-size: 1.95rem;
+  font-size: 2.1rem;
   color: var(--text-main);
+  letter-spacing: 0.5px;
 }
 
 .dash-subtitle {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  margin-top: 2px;
 }
 
 .dash-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
+/* Redesigned Glass/Anthracite Metric Cards */
 .metrics-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
   margin-bottom: 28px;
 }
 
 .metric-card {
-  background: var(--bg-card);
+  background: linear-gradient(135deg, rgba(30, 40, 61, 0.95), rgba(20, 28, 44, 0.98));
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 20px 22px;
-  border-left: 5px solid var(--accent-blue);
-  box-shadow: var(--shadow-sm);
+  padding: 22px 24px;
+  border-top: 3px solid var(--accent-blue);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.metric-card.metric-orange { border-left-color: var(--badge-submitted); }
-.metric-card.metric-blue { border-left-color: var(--badge-progress); }
-.metric-card.metric-purple { border-left-color: var(--badge-court); }
-.metric-card.metric-green { border-left-color: var(--badge-archived); }
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.metric-card.metric-orange { border-top-color: var(--badge-submitted); }
+.metric-card.metric-blue { border-top-color: var(--badge-progress); }
+.metric-card.metric-purple { border-top-color: var(--badge-court); }
+.metric-card.metric-green { border-top-color: var(--badge-archived); }
 
 .metric-val {
   font-family: var(--font-heading);
-  font-size: 2.1rem;
+  font-size: 2.35rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #ffffff;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .metric-label {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
   color: var(--text-muted);
 }
 
+/* Filter Bar Veredelung */
 .filter-panel {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(26, 36, 56, 0.9), rgba(20, 27, 42, 0.95));
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 16px 20px;
-  margin-bottom: 20px;
+  padding: 18px 24px;
+  margin-bottom: 22px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   flex-wrap: wrap;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .search-box {
   flex: 1;
-  min-width: 280px;
+  min-width: 300px;
   position: relative;
   display: flex;
   align-items: center;
@@ -1731,50 +1747,175 @@ html, body {
 
 .search-box .search-icon {
   position: absolute;
-  left: 12px;
-  color: var(--text-muted);
+  left: 14px;
+  color: var(--accent-gold);
+  font-size: 1rem;
 }
 
 .search-box input {
   width: 100%;
   background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 9px 12px 9px 38px;
+  border: 1.5px solid var(--border-color);
+  color: #ffffff;
+  padding: 11px 14px 11px 42px;
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-box input::placeholder {
+  color: #94a3b8;
 }
 
 .search-box input:focus {
-  border-color: var(--border-focus);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
 }
 
 .filter-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.88rem;
-  font-weight: 500;
+  font-size: 0.86rem;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
 .filter-group select {
   background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 8px 12px;
+  border: 1.5px solid var(--border-color);
+  color: #ffffff;
+  padding: 9px 14px;
   border-radius: var(--radius-sm);
   font-size: 0.88rem;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
+.filter-group select:focus {
+  border-color: var(--accent-gold);
+}
+
+/* Edle Falltabelle */
 .table-responsive {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(24, 33, 51, 0.95), rgba(18, 24, 38, 0.98));
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   overflow-x: auto;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.cases-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.cases-table th {
+  background: rgba(15, 22, 35, 0.95);
+  color: #cbd5e1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 0.75rem;
+  padding: 16px 20px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.cases-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-body);
+  vertical-align: middle;
+}
+
+.cases-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.cases-table tbody tr:hover {
+  background: rgba(212, 175, 55, 0.04);
+}
+
+.cases-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Empty State / Leerzustand */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.empty-seal {
+  font-size: 3.5rem;
+  margin-bottom: 14px;
+  opacity: 0.85;
+}
+
+.empty-state h4 {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Security Pills & Badges */
+.sec-level-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+.sec-normal {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sec-erhoeht {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.sec-vs {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sec-notfall {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+  animation: pulseRed 1.5s infinite;
+}
+
+.evidence-count-pill {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-gold-light);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
 .cases-table {
