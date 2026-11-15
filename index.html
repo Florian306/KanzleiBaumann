@@ -635,7 +635,7 @@
                   <option value="Offen">⏳ Offen</option>
                   <option value="Bezahlt">✓ Bezahlt</option>
                 </select>
-                <button type="button" class="btn btn-primary" onclick="app.openModal('modalNewInvoice')">+ Neue Rechnung erstellen</button>
+                <button type="button" class="btn btn-primary" onclick="InternaModules.openNewInvoiceModal()">+ Neue Rechnung erstellen</button>
               </div>
             </div>
             <div id="financesListContainer" class="interna-items-list"></div>
@@ -686,11 +686,18 @@
     <div class="modal-card modal-lg" style="position: relative;">
       <button type="button" onclick="app.closeModal('modalNewInvoice')" title="Schließen" style="position: absolute; top: 18px; right: 20px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem;">✕</button>
       <div class="modal-header" style="margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
-        <h2 style="margin: 0; font-size: 1.35rem; color: var(--accent-gold-light);">🧾 Neue Rechnung erstellen</h2>
+        <h2 id="finModalTitle" style="margin: 0; font-size: 1.35rem; color: var(--accent-gold-light);">🧾 Neue Rechnung erstellen</h2>
         <p class="modal-sub" style="margin: 4px 0 0 0;">Mandantendaten & Leistungen gemäß Honorarordnung erfassen</p>
       </div>
-      <form onsubmit="InternaModules.addFinanceEntry(event)">
+      <form id="finInvoiceForm" onsubmit="InternaModules.addFinanceEntry(event)">
+        <input type="hidden" id="finEditingId" value="">
         <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="input-group">
+            <label>Aus bestehender Akte übernehmen (optional)</label>
+            <select id="finCaseSelect" onchange="InternaModules.fillFromCase(this.value)">
+              <option value="">— Manuell eingeben —</option>
+            </select>
+          </div>
           <div class="form-grid">
             <div class="input-group">
               <label>Mandant / Rechnungsempfänger *</label>
@@ -716,6 +723,17 @@
             <label>Leistungen aus Honorarordnung wählen *</label>
             <div id="finServicesSelector" class="fin-services-selector">
               <!-- Dynamisch aus FEE_GROUPS & app.fees gerendert -->
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Zusatzposition / Auslagen (optional)</label>
+              <input type="text" id="finCustomTitle" oninput="InternaModules.updateFinanceBreakdown()" placeholder="z. B. Gerichtsgebühren / Rabatt">
+            </div>
+            <div class="input-group">
+              <label>Betrag Zusatzposition (€)</label>
+              <input type="number" id="finCustomAmount" oninput="InternaModules.updateFinanceBreakdown()" placeholder="0">
             </div>
           </div>
 

@@ -220,6 +220,13 @@ const InternaModules = {
       }
     });
 
+    const customTitle = document.getElementById('finCustomTitle')?.value.trim() || '';
+    const customAmount = parseFloat(document.getElementById('finCustomAmount')?.value || '0') || 0;
+    if (customTitle && customAmount !== 0) {
+      baseSum += customAmount;
+      lines.push({ title: customTitle, amount: customAmount, isCustom: true });
+    }
+
     let total = baseSum;
     if (urgencyPct > 0 && baseSum > 0) {
       const surcharge = Math.round(baseSum * (urgencyPct / 100));
@@ -257,8 +264,70 @@ const InternaModules = {
     this.renderFinances();
   },
 
+  populateCaseSelect() {
+    const select = document.getElementById('finCaseSelect');
+    if (!select || typeof StorageService === 'undefined') return;
+    const cases = StorageService.getCases ? StorageService.getCases() : [];
+    select.innerHTML = `<option value="">— Manuell eingeben —</option>` +
+      cases.map(c => `<option value="${c.id}">${app.escapeHtml(c.az || '')} — ${app.escapeHtml(c.clientName || c.title || 'Unbekannt')}</option>`).join('');
+  },
+
+  fillFromCase(caseId) {
+    if (!caseId || typeof StorageService === 'undefined') return;
+    const c = (StorageService.getCases() || []).find(x => x.id === caseId);
+    if (!c) return;
+    const clientEl = document.getElementById('finClient');
+    const phoneEl = document.getElementById('finClientPhone');
+    const refEl = document.getElementById('finCaseRef');
+    if (clientEl) clientEl.value = c.clientName || '';
+    if (phoneEl && c.clientPhone) phoneEl.value = c.clientPhone;
+    if (refEl && c.az) refEl.value = c.az;
+  },
+
+  openNewInvoiceModal() {
+    const form = document.getElementById('finInvoiceForm');
+    if (form) form.reset();
+    const editIdEl = document.getElementById('finEditingId');
+    if (editIdEl) editIdEl.value = '';
+    const titleEl = document.getElementById('finModalTitle');
+    if (titleEl) titleEl.textContent = '🧾 Neue Rechnung erstellen';
+    this.populateCaseSelect();
+    this.updateFinanceBreakdown();
+    if (window.app) app.openModal('modalNewInvoice');
+  },
+
+  editFinanceEntry(id) {
+    const item = this.getFinances().find(i => i.id === id);
+    if (!item) return;
+    this.openNewInvoiceModal();
+
+    const editIdEl = document.getElementById('finEditingId');
+    if (editIdEl) editIdEl.value = item.id;
+    const titleEl = document.getElementById('finModalTitle');
+    if (titleEl) titleEl.textContent = `✏️ Rechnung ${item.invoiceNo || ''} bearbeiten`;
+
+    document.getElementById('finClient').value = item.client || '';
+    if (document.getElementById('finClientPhone')) document.getElementById('finClientPhone').value = item.clientPhone || '';
+    if (document.getElementById('finClientAddress')) document.getElementById('finClientAddress').value = item.clientAddress || '';
+    if (document.getElementById('finCaseRef')) document.getElementById('finCaseRef').value = item.caseRef || '';
+    if (document.getElementById('finStatus')) document.getElementById('finStatus').value = item.status || 'Offen';
+    if (document.getElementById('finDueDays') && item.dueDays !== undefined) document.getElementById('finDueDays').value = String(item.dueDays);
+
+    const breakdownTitles = new Set((item.breakdown || []).map(b => b.title));
+    document.querySelectorAll('.fin-service-cb').forEach(cb => {
+      cb.checked = breakdownTitles.has(cb.dataset.title) || (cb.dataset.type === 'pct' && (item.breakdown || []).some(b => b.title.startsWith('Dringlichkeitszuschlag')));
+    });
+
+    const customLine = (item.breakdown || []).find(b => b.isCustom);
+    if (document.getElementById('finCustomTitle')) document.getElementById('finCustomTitle').value = customLine ? customLine.title : '';
+    if (document.getElementById('finCustomAmount')) document.getElementById('finCustomAmount').value = customLine ? customLine.amount : '';
+
+    this.updateFinanceBreakdown();
+  },
+
   addFinanceEntry(e) {
     e.preventDefault();
+    const editingId = document.getElementById('finEditingId')?.value.trim() || '';
     const client = document.getElementById('finClient').value.trim();
     const clientPhone = document.getElementById('finClientPhone')?.value.trim() || '';
     const clientAddress = document.getElementById('finClientAddress')?.value.trim() || '';
@@ -274,25 +343,34 @@ const InternaModules = {
     }
 
     const desc = breakdown.map(b => b.title).join(' + ');
-    const list = this.getFinances();
-    const invoiceNo = `RE-${new Date().getFullYear()}-${String(101 + list.length).padStart(3, '0')}`;
+    let list = this.getFinances();
     const dueDateObj = new Date();
     dueDateObj.setDate(dueDateObj.getDate() + dueDays);
     const dueDate = dueDays === 0 ? 'Sofort' : dueDateObj.toLocaleDateString('de-DE');
 
-    list.unshift({
-      id: 'fin_' + Date.now(),
-      invoiceNo,
-      client, clientPhone, clientAddress, caseRef, desc, breakdown, amount, status,
-      dueDays, dueDate,
-      date: new Date().toLocaleDateString('de-DE')
-    });
+    if (editingId) {
+      list = list.map(item => item.id === editingId ? {
+        ...item,
+        client, clientPhone, clientAddress, caseRef, desc, breakdown, amount, status,
+        dueDays, dueDate
+      } : item);
+    } else {
+      const invoiceNo = `RE-${new Date().getFullYear()}-${String(101 + list.length).padStart(3, '0')}`;
+      list.unshift({
+        id: 'fin_' + Date.now(),
+        invoiceNo,
+        client, clientPhone, clientAddress, caseRef, desc, breakdown, amount, status,
+        dueDays, dueDate,
+        date: new Date().toLocaleDateString('de-DE')
+      });
+    }
     this.saveFinances(list);
     e.target.reset();
+    if (document.getElementById('finEditingId')) document.getElementById('finEditingId').value = '';
     this.updateFinanceBreakdown();
     if (window.app) {
       app.closeModal('modalNewInvoice');
-      app.showToast('Rechnung erfolgreich erstellt!', 'success');
+      app.showToast(editingId ? 'Rechnung aktualisiert!' : 'Rechnung erfolgreich erstellt!', 'success');
     }
   },
 
@@ -349,8 +427,19 @@ const InternaModules = {
       return;
     }
 
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
     container.innerHTML = filtered.map((item, idx) => {
       const invNo = item.invoiceNo || `RE-2026-${String(101 + idx).padStart(3, '0')}`;
+      let isOverdue = false;
+      if (item.status !== 'Bezahlt' && item.dueDate && item.dueDate !== 'Sofort') {
+        const parts = item.dueDate.split('.');
+        if (parts.length === 3) {
+          const dueObj = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+          if (dueObj < todayStart) isOverdue = true;
+        }
+      }
       return `
       <div class="interna-item-card fin-invoice-card">
         <div class="interna-item-main" style="width: 100%;">
@@ -359,6 +448,7 @@ const InternaModules = {
             <span class="fin-status-pill ${item.status === 'Bezahlt' ? 'paid' : 'open'}" onclick="InternaModules.toggleFinanceStatus('${item.id}')" title="Klicken zum Umschalten">
               ${item.status === 'Bezahlt' ? '✓ Bezahlt' : '⏳ Offen (Überweisung)'}
             </span>
+            ${isOverdue ? `<span style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.45); font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">⚠️ Überfällig</span>` : ''}
             <span style="font-size:0.78rem; color:var(--text-muted);">${item.date}${item.dueDate && item.status !== 'Bezahlt' ? ` • Fällig: ${item.dueDate}` : ''}</span>
           </div>
           <div class="interna-item-title">${app.escapeHtml(item.client)} — <strong style="color:var(--accent-gold-light);">${fmt(item.amount)}</strong></div>
@@ -370,6 +460,7 @@ const InternaModules = {
         </div>
         <div class="fin-card-actions">
           <button class="btn btn-secondary btn-sm" onclick="InternaModules.exportInvoicePdf('${item.id}')" title="Offizielle Rechnung als PDF drucken">📄 Rechnung PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="InternaModules.editFinanceEntry('${item.id}')" title="Rechnung bearbeiten">✏️</button>
           <button class="btn btn-danger-outline btn-sm" onclick="InternaModules.deleteFinanceEntry('${item.id}')" title="Eintrag löschen">✕</button>
         </div>
       </div>
