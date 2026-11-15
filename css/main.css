@@ -2664,27 +2664,158 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* ================= PRINT / PDF EXPORT ENGINE ================= */
+@page {
+  size: A4 portrait;
+  margin: 18mm 15mm 18mm 15mm;
+}
+
 @media print {
+  /* 1. Hide every single screen element and background UI */
   .official-topbar,
   .main-navbar,
   .case-subnav,
   .dash-actions,
+  .dashboard-header,
+  .metrics-row,
+  .filter-panel,
+  .table-responsive,
   .modal-footer,
+  .modal-header,
+  .modal-sub,
   .btn,
   .upload-dropzone,
-  .tab-link {
+  .tab-link,
+  .toast-container,
+  #app-viewport,
+  .lightbox-backdrop {
     display: none !important;
   }
 
-  body, html {
+  /* 2. Unclamp modal backdrop, card and viewport so it flows as natural paper pages */
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    font-family: 'Times New Roman', Georgia, serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .official-letterhead-card {
+  .modal-backdrop#modalOfficialDocument {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .modal-card {
+    background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* 3. Official Letterhead Clean Print Layout */
+  .official-letterhead-card {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    page-break-after: auto;
+  }
+
+  .letterhead-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 14px !important;
+    margin-bottom: 24px !important;
+    page-break-inside: avoid;
+  }
+
+  .letterhead-firm-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    color: #0f172a !important;
+  }
+
+  .letterhead-firm-sub {
+    font-size: 0.85rem !important;
+    color: #475569 !important;
+    line-height: 1.4 !important;
+  }
+
+  .letterhead-court-info {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 24px !important;
+    color: #0f172a !important;
+    page-break-inside: avoid;
+  }
+
+  .letterhead-body-text {
+    font-size: 1.05rem !important;
+    line-height: 1.75 !important;
+    white-space: pre-wrap !important;
+    color: #0f172a !important;
+    margin-bottom: 30px !important;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Sign block and seal must stay glued together */
+  .letterhead-footer-sign {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    border-top: 1.5px solid #cbd5e1 !important;
+    padding-top: 20px !important;
+    margin-top: 36px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .wax-seal {
+    width: 65px !important;
+    height: 65px !important;
+    background: radial-gradient(circle, #b91c1c 20%, #7f1d1d 90%) !important;
+    border: 3px solid #fecaca !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fef08a !important;
+    font-size: 1.8rem !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .signature-svg {
+    font-family: 'Brush Script MT', cursive, sans-serif !important;
+    font-size: 1.8rem !important;
+    color: #1e3a8a !important;
+    font-style: italic !important;
   }
 }
 
