@@ -1,0 +1,1483 @@
+/**
+ * Main Application Controller (High-End Edition)
+ * Kanzlei Dr. jur. Lars Baumann – Berlin
+ * 
+ * Features:
+ * 1. Anpassbare & öffentliche Gebührenordnung
+ * 2. Dashcam / Bodycam Timeline-Marker
+ * 3. 24h/48h Haftprüfungs- & Fristencountdown
+ * 4. RVG Gebührenrechner & Kostennote
+ * 5. Bürger-Akteneinsicht & Live-Status-Tracker
+ * 6. Offizieller Schriftsatz-Druck mit Kanzleisiegel & Unterschrift
+ */
+
+class KanzleiApp {
+  constructor() {
+    this.storage = new StorageService();
+    this.storageKey = 'kanzlei_lars_baumann_berlin_cases_v4';
+    this.feesKey = 'kanzlei_lars_baumann_fees_v1';
+    this.authKey = 'kanzlei_lars_baumann_authenticated';
+    this.passwordHash = 'baumann2026';
+
+    this.currentView = 'portal';
+    this.currentCaseId = null;
+    this.currentDetailTab = 'stammdaten';
+
+    this.fees = this.loadFees();
+    this.cases = this.loadCases();
+    this.initBerlinDemoDataIfEmpty();
+  }
+
+  init() {
+    this.updateClock();
+    setInterval(() => this.updateClock(), 1000);
+    this.renderPublicFees();
+    this.renderCasesTable();
+    this.updateMetrics();
+  }
+
+  updateClock() {
+    const el = document.getElementById('systemTime');
+    if (!el) return;
+    const now = new Date();
+    const dStr = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const tStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    el.textContent = `BERLIN • ${dStr} • ${tStr} UHR`;
+  }
+
+  // --- GEBÜHRENORDNUNG (ÖFFENTLICH & BEARBEITBAR) ---
+  loadFees() {
+    const defaultFees = {
+      erstberatung: 190,
+      strafverteidigung: 750,
+      haftpruefung: 950,
+      polizeirecht: 550,
+      zivilklage: 800,
+      stundensatz: 280
+    };
+    try {
+      const raw = localStorage.getItem(this.feesKey);
+      if (raw) return { ...defaultFees, ...JSON.parse(raw) };
+    } catch (e) {
+      console.error('Fees loading error:', e);
+    }
+    return defaultFees;
+  }
+
+  saveFees(newFees) {
+    this.fees = { ...this.fees, ...newFees };
+    localStorage.setItem(this.feesKey, JSON.stringify(this.fees));
+    this.renderPublicFees();
+    this.showToast('Kanzlei-Gebührensätze aktualisiert!', 'success');
+  }
+
+  renderPublicFees() {
+    const formatEuro = (num) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(num);
+
+    const f1 = document.getElementById('fee-erstberatung');
+    const f2 = document.getElementById('fee-strafverteidigung');
+    const f3 = document.getElementById('fee-haftpruefung');
+    const f4 = document.getElementById('fee-polizeirecht');
+    const f5 = document.getElementById('fee-zivilklage');
+    const f6 = document.getElementById('fee-stundensatz');
+
+    if (f1) f1.textContent = formatEuro(this.fees.erstberatung);
+    if (f2) f2.textContent = formatEuro(this.fees.strafverteidigung);
+    if (f3) f3.textContent = formatEuro(this.fees.haftpruefung);
+    if (f4) f4.textContent = formatEuro(this.fees.polizeirecht);
+    if (f5) f5.textContent = formatEuro(this.fees.zivilklage);
+    if (f6) f6.textContent = `${formatEuro(this.fees.stundensatz)} / Std.`;
+  }
+
+  openFeeSettingsModal() {
+    if (!this.isAuthenticated()) {
+      this.openModal('modalPassword');
+      return;
+    }
+    document.getElementById('inputFeeErstberatung').value = this.fees.erstberatung;
+    document.getElementById('inputFeeStrafverteidigung').value = this.fees.strafverteidigung;
+    document.getElementById('inputFeeHaftpruefung').value = this.fees.haftpruefung;
+    document.getElementById('inputFeePolizeirecht').value = this.fees.polizeirecht;
+    document.getElementById('inputFeeZivilklage').value = this.fees.zivilklage;
+    document.getElementById('inputFeeStundensatz').value = this.fees.stundensatz;
+
+    this.openModal('modalEditFees');
+  }
+
+  handleSaveFees(e) {
+    e.preventDefault();
+    const updated = {
+      erstberatung: parseFloat(document.getElementById('inputFeeErstberatung').value) || 190,
+      strafverteidigung: parseFloat(document.getElementById('inputFeeStrafverteidigung').value) || 750,
+      haftpruefung: parseFloat(document.getElementById('inputFeeHaftpruefung').value) || 950,
+      polizeirecht: parseFloat(document.getElementById('inputFeePolizeirecht').value) || 550,
+      zivilklage: parseFloat(document.getElementById('inputFeeZivilklage').value) || 800,
+      stundensatz: parseFloat(document.getElementById('inputFeeStundensatz').value) || 280
+    };
+    this.saveFees(updated);
+    this.closeModal('modalEditFees');
+  }
+
+  // --- PERSISTENCE ---
+  loadCases() {
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.error('Failed to load cases:', e);
+    }
+    return [];
+  }
+
+  saveCases() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
+      this.updateMetrics();
+    } catch (e) {
+      console.error('Failed to save cases:', e);
+      this.showToast('Speicherfehler (LocalStorage Limit)!', 'error');
+    }
+  }
+
+  generateJuridicalAktenzeichen(caseType) {
+    const yearShort = new Date().getFullYear().toString().slice(-2);
+
+    let code = 'Allg';
+    if (caseType.includes('Straf')) code = 'StR';
+    else if (caseType.includes('Polizei') || caseType.includes('Dienst')) code = 'PolR';
+    else if (caseType.includes('Zivil') || caseType.includes('Schaden')) code = 'Ziv';
+    else if (caseType.includes('Waffen') || caseType.includes('Lizenz')) code = 'WaffR';
+    else if (caseType.includes('Dienstaufsicht')) code = 'IAD';
+
+    let highestNum = 100;
+    const regex = new RegExp(`^(\\d+)/${yearShort}\\s`);
+
+    this.cases.forEach(c => {
+      if (c.az) {
+        const match = c.az.match(regex);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > highestNum) highestNum = num;
+        }
+      }
+    });
+
+    const nextNum = highestNum + 1;
+    return `${nextNum}/${yearShort} ${code}`;
+  }
+
+  initBerlinDemoDataIfEmpty() {
+    if (this.cases.length === 0) {
+      const now = Date.now();
+      const demoCases = [
+        {
+          id: 'case_berlin_01',
+          az: '101/26 StR',
+          clientName: 'Alexander Wendt',
+          clientPhone: '0171 / 8920144',
+          opponent: 'Polizei Berlin – Abschnitt 32 (Mitte / Wedding)',
+          caseType: 'Strafverteidigung',
+          status: 'In Bearbeitung',
+          incidentDate: '02.11.2026, 23:45 Uhr (Alexanderplatz / Dircksenstraße)',
+          description: 'Mandant wurde im Rahmen einer verdachtsunabhängigen Kontrolle in der kriminalitätsbelasteten Zone (kbO) Alexanderplatz festgesetzt. Es erfolgte eine Leibesvisitation und die Beschlagnahme seines Smartphones ohne richterliche Anordnung. Vorwurf: Widerstand gegen Vollstreckungsbeamte.',
+          demands: 'Einstellung des Verfahrens nach § 170 Abs. 2 StPO, Rückgabe des Smartphones, Überprüfung der Rechtmäßigkeit der Maßnahme.',
+          notes: 'Dringend Einsicht in das Protokoll der Festnahme anfordern. Amtsgericht Tiergarten zuständig.',
+          witnesses: 'Kioskbesitzer H. Demir, Karl-Liebknecht-Straße.',
+          securityLevel: 'vs', // normal, erhoeht, vs
+          deadlineTimestamp: now + (14 * 3600 * 1000), // noch 14 Stunden
+          markers: [
+            { time: 14, desc: 'Beamter verweigert Nennung der Dienstnummer' },
+            { time: 38, desc: 'Smartphone wird aus der Hand gerissen' }
+          ],
+          feeGrundgebuehr: 220,
+          feeVerfahrensgebuehr: 380,
+          feeTerminsgebuehr: 450,
+          schriftsatz: SchriftsatzTemplates.getHaftbeschwerde({
+            az: '101/26 StR',
+            clientName: 'Alexander Wendt',
+            opponent: 'Polizei Berlin Abschnitt 32'
+          }, new Date().toLocaleDateString('de-DE')),
+          createdAt: new Date(now - 86400000 * 2).toISOString(),
+          filesCount: 2
+        },
+        {
+          id: 'case_berlin_02',
+          az: '102/26 PolR',
+          clientName: 'Miriam Al-Hassan',
+          clientPhone: '0152 / 4490123',
+          opponent: 'Polizeidirektion 5 (City West / Kreuzberg)',
+          caseType: 'Polizeirecht / Dienstbeschwerde',
+          status: 'Eingereicht',
+          incidentDate: '03.11.2026, 18:20 Uhr (Görlitzer Park)',
+          description: 'Einsatzkräfte führten eine Durchsuchung der Mandantin und ihrer Begleitung durch. Trotz Vorzeigen des Personalausweises wurde sie 3 Stunden im Mannschaftswagen festgehalten.',
+          demands: 'Feststellung der Rechtswidrigkeit, Löschung der polizeilichen Erkennungsdaten, Entschädigung nach ASOG Berlin.',
+          notes: 'Dienstaufsichtsbeschwerde an den Polizeipräsidenten vorbereiten.',
+          witnesses: 'Zeugin Sara K., Reichenberger Str.',
+          securityLevel: 'erhoeht',
+          deadlineTimestamp: null,
+          markers: [],
+          feeGrundgebuehr: 190,
+          feeVerfahrensgebuehr: 350,
+          feeTerminsgebuehr: 0,
+          schriftsatz: '',
+          createdAt: new Date(now - 86400000 * 1).toISOString(),
+          filesCount: 1
+        },
+        {
+          id: 'case_berlin_03',
+          az: '103/26 WaffR',
+          clientName: 'SpreeLogistik Express GmbH',
+          clientPhone: '030 / 552099-0',
+          opponent: 'Landesamt für Bürger- und Ordnungsangelegenheiten (LABO)',
+          caseType: 'Waffen- & Lizenzrecht',
+          status: 'Vor Gericht',
+          incidentDate: '26.10.2026',
+          description: 'Entzug der Transportkonzession für Werttransporte wegen unverschuldeter bürokratischer Verzögerung bei der Zuverlässigkeitsprüfung.',
+          demands: 'Eilantrag beim Verwaltungsgericht Berlin (Kirchstraße 7).',
+          notes: 'Verhandlungstermin für nächste Woche terminiert.',
+          witnesses: 'Geschäftsführer Bernd Kowalski',
+          securityLevel: 'normal',
+          deadlineTimestamp: null,
+          markers: [],
+          feeGrundgebuehr: 300,
+          feeVerfahrensgebuehr: 500,
+          feeTerminsgebuehr: 600,
+          schriftsatz: '',
+          createdAt: new Date(now - 86400000 * 5).toISOString(),
+          filesCount: 0
+        }
+      ];
+
+      this.cases = demoCases;
+      this.saveCases();
+      this.injectDemoFiles();
+    }
+  }
+
+  async injectDemoFiles() {
+    const sampleCanvas = document.createElement('canvas');
+    sampleCanvas.width = 400;
+    sampleCanvas.height = 300;
+    const ctx = sampleCanvas.getContext('2d');
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, 400, 300);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(10, 10, 380, 280);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px Inter, sans-serif';
+    ctx.fillText('TATORT-DOKUMENTATION BERLIN', 20, 40);
+    ctx.font = '13px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Alexanderplatz / U-Bahnhof', 20, 70);
+    ctx.fillText('Zeit: 02.11.2026 23:50:11 Uhr', 20, 95);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(30, 130, 100, 80);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Inter';
+    ctx.fillText('Abschnitt 32', 40, 175);
+
+    const dataUrl = sampleCanvas.toDataURL('image/png');
+
+    await this.storage.saveFile({
+      id: 'demo_file_img_1',
+      caseId: 'case_berlin_01',
+      name: 'Beweisfoto_Alex_Festnahme.png',
+      type: 'image/png',
+      category: 'image',
+      size: 42100,
+      data: dataUrl,
+      uploadedAt: new Date().toISOString()
+    });
+
+    await this.storage.saveFile({
+      id: 'demo_file_pdf_1',
+      caseId: 'case_berlin_01',
+      name: 'Durchsuchungsprotokoll_Polizei_Berlin.pdf',
+      type: 'application/pdf',
+      category: 'document',
+      size: 154200,
+      data: 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXr...',
+      uploadedAt: new Date().toISOString()
+    });
+  }
+
+  // --- NAVIGATION ---
+  navigate(viewId) {
+    document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+    const targetSec = document.getElementById(`view-${viewId}`);
+    const targetNav = document.getElementById(`nav-${viewId}`);
+
+    if (targetSec) targetSec.classList.add('active');
+    if (targetNav) targetNav.classList.add('active');
+
+    this.currentView = viewId;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (viewId === 'dashboard') {
+      this.renderCasesTable();
+      this.updateMetrics();
+    }
+  }
+
+  scrollToSection(sectionId) {
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // --- AUTHENTICATION ---
+  isAuthenticated() {
+    return sessionStorage.getItem(this.authKey) === 'true';
+  }
+
+  openInternalPortal() {
+    if (this.isAuthenticated()) {
+      this.navigate('dashboard');
+    } else {
+      this.openModal('modalPassword');
+    }
+  }
+
+  handleAuthSubmit(e) {
+    e.preventDefault();
+    const pwInput = document.getElementById('authPassword');
+    const errBox = document.getElementById('authErrorMsg');
+
+    if (pwInput.value.trim() === this.passwordHash) {
+      sessionStorage.setItem(this.authKey, 'true');
+      this.closeModal('modalPassword');
+      pwInput.value = '';
+      errBox.style.display = 'none';
+      this.showToast('Angemeldet: Dr. jur. Lars Baumann (Berlin)', 'success');
+      this.navigate('dashboard');
+    } else {
+      errBox.style.display = 'block';
+      pwInput.focus();
+    }
+  }
+
+  lockInternalPortal() {
+    sessionStorage.removeItem(this.authKey);
+    this.showToast('Kanzlei-Interna gesperrt.', 'info');
+    this.navigate('portal');
+  }
+
+  // --- CASE SUBMISSION ---
+  handlePublicSubmit(e) {
+    e.preventDefault();
+
+    const clientName = document.getElementById('pubClientName').value.trim();
+    const clientPhone = document.getElementById('pubClientPhone').value.trim();
+    const caseType = document.getElementById('pubCaseType').value;
+    const opponent = document.getElementById('pubOpponent').value.trim();
+    const incidentDate = document.getElementById('pubIncidentDate').value.trim();
+    const description = document.getElementById('pubDescription').value.trim();
+    const demands = document.getElementById('pubDemands').value.trim();
+
+    const newAz = this.generateJuridicalAktenzeichen(caseType);
+    const newCase = {
+      id: 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      az: newAz,
+      clientName,
+      clientPhone,
+      opponent,
+      caseType,
+      status: 'Eingereicht',
+      incidentDate,
+      description,
+      demands,
+      notes: '',
+      witnesses: '',
+      schriftsatz: '',
+      securityLevel: 'normal',
+      deadlineTimestamp: null,
+      markers: [],
+      feeGrundgebuehr: this.fees.erstberatung || 190,
+      feeVerfahrensgebuehr: 0,
+      feeTerminsgebuehr: 0,
+      createdAt: new Date().toISOString(),
+      filesCount: 0
+    };
+
+    this.cases.unshift(newCase);
+    this.saveCases();
+
+    document.getElementById('publicCaseForm').reset();
+    this.showToast(`Fall eingereicht! Aktenzeichen: ${newAz}`, 'success');
+
+    const azBox = document.getElementById('successModalAz');
+    const descBox = document.getElementById('successModalDesc');
+    if (azBox) azBox.textContent = newAz;
+    if (descBox) {
+      descBox.textContent = `Ihre Akte für ${clientName} wurde verbindlich im Berliner Kanzleiregister aufgenommen. Es gilt die Kanzleiordnung („Wer zuerst kommt, mahlt zuerst“). Wir melden uns unter ${clientPhone} bei Ihnen.`;
+    }
+    this.openModal('modalSubmissionSuccess');
+
+    this.navigate('portal');
+  }
+
+  openNewCaseModal() {
+    this.openModal('modalNewCase');
+  }
+
+  handleCreateCaseModal(e) {
+    e.preventDefault();
+    const clientName = document.getElementById('mClientName').value.trim();
+    const clientPhone = document.getElementById('mClientPhone').value.trim();
+    const opponent = document.getElementById('mOpponent').value.trim();
+    const caseType = document.getElementById('mCaseType').value;
+    const status = document.getElementById('mStatus').value;
+    const incidentDate = document.getElementById('mIncidentDate').value.trim();
+    const description = document.getElementById('mDescription').value.trim();
+
+    const newAz = this.generateJuridicalAktenzeichen(caseType);
+    const newCase = {
+      id: 'case_' + Date.now(),
+      az: newAz,
+      clientName,
+      clientPhone,
+      opponent,
+      caseType,
+      status,
+      incidentDate: incidentDate || 'Berlin',
+      description,
+      demands: '',
+      notes: '',
+      witnesses: '',
+      schriftsatz: '',
+      securityLevel: 'normal',
+      deadlineTimestamp: null,
+      markers: [],
+      feeGrundgebuehr: 200,
+      feeVerfahrensgebuehr: 350,
+      feeTerminsgebuehr: 0,
+      createdAt: new Date().toISOString(),
+      filesCount: 0
+    };
+
+    this.cases.unshift(newCase);
+    this.saveCases();
+
+    this.closeModal('modalNewCase');
+    this.showToast(`Akte ${newAz} angelegt!`, 'success');
+    this.openCaseDetail(newCase.id);
+  }
+
+  // --- BÜRGER STATUS TRACKER ---
+  handlePublicTracker(e) {
+    e.preventDefault();
+    const azInput = document.getElementById('trackerInputAz').value.trim().toLowerCase();
+    const phoneInput = document.getElementById('trackerInputPhone').value.trim().toLowerCase();
+    const resBox = document.getElementById('trackerResultBox');
+    const errBox = document.getElementById('trackerErrorMsg');
+
+    const found = this.cases.find(c => {
+      const matchAz = c.az.toLowerCase().replace(/\s+/g, '') === azInput.replace(/\s+/g, '');
+      const matchPhone = c.clientPhone.toLowerCase().includes(phoneInput) || phoneInput.length === 0;
+      return matchAz && matchPhone;
+    });
+
+    if (found) {
+      errBox.style.display = 'none';
+      resBox.style.display = 'block';
+
+      document.getElementById('trackClientName').textContent = found.clientName;
+      document.getElementById('trackAz').textContent = found.az;
+      document.getElementById('trackOpponent').textContent = found.opponent;
+      document.getElementById('trackStatusText').textContent = found.status;
+
+      // Update Step Indicators
+      const step1 = document.getElementById('trackStep1');
+      const step2 = document.getElementById('trackStep2');
+      const step3 = document.getElementById('trackStep3');
+      const step4 = document.getElementById('trackStep4');
+
+      [step1, step2, step3, step4].forEach(s => s.className = 'tracker-step');
+
+      step1.classList.add('completed');
+
+      if (found.status === 'Eingereicht') {
+        step1.classList.add('active');
+      } else if (found.status === 'In Bearbeitung') {
+        step2.classList.add('completed', 'active');
+      } else if (found.status === 'Vor Gericht') {
+        step2.classList.add('completed');
+        step3.classList.add('completed', 'active');
+      } else if (found.status === 'Archiviert') {
+        step2.classList.add('completed');
+        step3.classList.add('completed');
+        step4.classList.add('completed', 'active');
+      }
+    } else {
+      resBox.style.display = 'none';
+      errBox.style.display = 'block';
+    }
+  }
+
+  // --- DASHBOARD TABLE ---
+  updateMetrics() {
+    const total = this.cases.length;
+    const submitted = this.cases.filter(c => c.status === 'Eingereicht').length;
+    const inProgress = this.cases.filter(c => c.status === 'In Bearbeitung').length;
+    const inCourt = this.cases.filter(c => c.status === 'Vor Gericht').length;
+    const archived = this.cases.filter(c => c.status === 'Archiviert').length;
+
+    const elTotal = document.getElementById('metricTotalCases');
+    const elSub = document.getElementById('metricSubmitted');
+    const elProg = document.getElementById('metricInProgress');
+    const elCourt = document.getElementById('metricInCourt');
+    const elArch = document.getElementById('metricArchived');
+
+    if (elTotal) elTotal.textContent = total;
+    if (elSub) elSub.textContent = submitted;
+    if (elProg) elProg.textContent = inProgress;
+    if (elCourt) elCourt.textContent = inCourt;
+    if (elArch) elArch.textContent = archived;
+  }
+
+  renderCasesTable() {
+    const tbody = document.getElementById('casesTableBody');
+    const emptyNotice = document.getElementById('tableEmptyNotice');
+    if (!tbody) return;
+
+    const searchVal = (document.getElementById('caseSearchInput')?.value || '').toLowerCase();
+    const filterStatus = document.getElementById('filterStatus')?.value || 'ALL';
+    const filterType = document.getElementById('filterType')?.value || 'ALL';
+    const sortOrder = document.getElementById('sortOrder')?.value || 'newest';
+
+    let filtered = this.cases.filter(c => {
+      const matchSearch =
+        c.az.toLowerCase().includes(searchVal) ||
+        c.clientName.toLowerCase().includes(searchVal) ||
+        c.opponent.toLowerCase().includes(searchVal) ||
+        (c.description && c.description.toLowerCase().includes(searchVal));
+
+      const matchStatus = (filterStatus === 'ALL') || (c.status === filterStatus);
+      const matchType = (filterType === 'ALL') || (c.caseType === filterType);
+
+      return matchSearch && matchStatus && matchType;
+    });
+
+    filtered.sort((a, b) => {
+      if (sortOrder === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortOrder === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortOrder === 'az_asc') return a.az.localeCompare(b.az);
+      if (sortOrder === 'az_desc') return b.az.localeCompare(a.az);
+      return 0;
+    });
+
+    tbody.innerHTML = '';
+
+    if (filtered.length === 0) {
+      if (emptyNotice) emptyNotice.style.display = 'block';
+      return;
+    } else {
+      if (emptyNotice) emptyNotice.style.display = 'none';
+    }
+
+    filtered.forEach(c => {
+      const tr = document.createElement('tr');
+      const dateStr = new Date(c.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const statusClass = `status-${c.status.toLowerCase().replace(/\s+/g, '-')}`;
+
+      let secTag = '<span class="sec-level-pill sec-normal">Normal</span>';
+      if (c.securityLevel === 'erhoeht') secTag = '<span class="sec-level-pill sec-erhoeht">Erhöht</span>';
+      if (c.securityLevel === 'vs') secTag = '<span class="sec-level-pill sec-vs">VS-Vertraulich</span>';
+
+      tr.innerHTML = `
+        <td>
+          <div class="az-badge-container">
+            <span class="az-tag">${c.az}</span>
+            ${secTag}
+          </div>
+        </td>
+        <td>
+          <strong style="color: var(--text-main);">${this.escapeHtml(c.clientName)}</strong><br>
+          <small style="color: var(--text-dark);">${this.escapeHtml(c.clientPhone)}</small>
+        </td>
+        <td>${this.escapeHtml(c.opponent)}</td>
+        <td><span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">${c.caseType}</span></td>
+        <td><span style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-dark);">${dateStr}</span></td>
+        <td>
+          <span class="evidence-count-pill" id="badge-files-${c.id}">📁 ${c.filesCount || 0}</span>
+        </td>
+        <td>
+          <span class="status-badge ${statusClass}">
+            <span class="badge-dot"></span>
+            ${c.status}
+          </span>
+        </td>
+        <td style="text-align: right;">
+          <button class="btn btn-secondary btn-sm" onclick="app.openCaseDetail('${c.id}')" title="Akte öffnen">
+            <span>Öffnen ↗</span>
+          </button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+
+      this.storage.getFilesByCaseId(c.id).then(files => {
+        const p = document.getElementById(`badge-files-${c.id}`);
+        if (p) p.textContent = `📁 ${files.length}`;
+      });
+    });
+  }
+
+  // --- CASE DETAIL VIEW ---
+  async openCaseDetail(caseId) {
+    if (!this.isAuthenticated()) {
+      this.openModal('modalPassword');
+      return;
+    }
+
+    const currentCase = this.cases.find(c => c.id === caseId);
+    if (!currentCase) {
+      this.showToast('Akte nicht gefunden!', 'error');
+      return;
+    }
+
+    this.currentCaseId = caseId;
+    this.currentDetailTab = 'stammdaten';
+
+    await this.renderCaseDetailView(currentCase);
+    this.navigate('case-detail');
+    this.startDeadlineCountdown(currentCase);
+  }
+
+  async renderCaseDetailView(c) {
+    const container = document.getElementById('caseDetailContent');
+    if (!container) return;
+
+    const files = await this.storage.getFilesByCaseId(c.id);
+    const images = files.filter(f => f.category === 'image');
+    const videos = files.filter(f => f.category === 'video');
+    const docs = files.filter(f => f.category === 'document');
+
+    const statusOptions = ['Eingereicht', 'In Bearbeitung', 'Vor Gericht', 'Archiviert'];
+    const secOptions = [
+      { val: 'normal', label: '🟢 Normaler Vorgang' },
+      { val: 'erhoeht', label: '🟡 Erhöhte Sicherheitsstufe' },
+      { val: 'vs', label: '🔴 Verschlusssache (VS § 203 StGB)' }
+    ];
+
+    container.innerHTML = `
+      <div class="case-subnav">
+        <div class="subnav-left">
+          <button class="btn btn-secondary btn-sm" onclick="app.navigate('dashboard')">
+            <span>← Zurück zur Aktenübersicht</span>
+          </button>
+          <span style="color: var(--border-color);">|</span>
+          <span style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: var(--accent-gold);">
+            DIGITALES FALLBUCH BERLIN
+          </span>
+        </div>
+        <div class="subnav-right" style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="app.exportOfficialDocument('${c.id}')">
+            <span>📜 Offizieller Schriftsatz (Druck)</span>
+          </button>
+          <button class="btn btn-danger-outline btn-sm" onclick="app.deleteCaseConfirm('${c.id}')">
+            <span>🗑️ Akte vernichten</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- FRISTEN- & HAFT-COUNTDOWN BANNER -->
+      <div class="deadline-badge-card">
+        <div class="deadline-info">
+          <span class="deadline-icon">⏱️</span>
+          <div>
+            <strong style="color: var(--text-main);">Eilbedürftigkeit & Haftprüfungsfrist (§ 128 StPO Berlin)</strong><br>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Gesetzliche Vorführungsfrist beim Amtsgericht Tiergarten</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div class="deadline-timer" id="deadlineClockDisplay">Keine Frist aktiv</div>
+          <button class="btn btn-secondary btn-sm" onclick="app.setHaftCountdown24h('${c.id}')">+ 24h Frist starten</button>
+        </div>
+      </div>
+
+      <div class="case-main-header">
+        <div class="case-header-info">
+          <div class="case-header-az">${c.az}</div>
+          <div class="case-header-meta">
+            <div class="case-header-client">${this.escapeHtml(c.clientName)} <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-muted);">vs. ${this.escapeHtml(c.opponent)}</span></div>
+            <div class="case-header-sub">
+              Erfasst am: ${new Date(c.createdAt).toLocaleDateString('de-DE')} • Rechtsgebiet: ${c.caseType} • Tel: ${this.escapeHtml(c.clientPhone)}
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div class="case-status-control">
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Status:</label>
+            <select onchange="app.updateCaseStatus('${c.id}', this.value)">
+              ${statusOptions.map(st => `<option value="${st}" ${c.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+            </select>
+          </div>
+          <div class="case-status-control">
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Sicherheit:</label>
+            <select onchange="app.saveFieldChange('${c.id}', 'securityLevel', this.value)">
+              ${secOptions.map(so => `<option value="${so.val}" ${(c.securityLevel || 'normal') === so.val ? 'selected' : ''}>${so.label}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-tabs-nav">
+        <button class="tab-link active" onclick="app.switchDetailTab('stammdaten', this)">
+          <span>📋 Stammdaten & Sachverhalt</span>
+        </button>
+        <button class="tab-link" onclick="app.switchDetailTab('evidence', this)">
+          <span>📸 Beweise & Footage (${files.length})</span>
+        </button>
+        <button class="tab-link" onclick="app.switchDetailTab('schriftsatz', this)">
+          <span>⚖️ Schriftsätze (Berlin)</span>
+        </button>
+        <button class="tab-link" onclick="app.switchDetailTab('rvg', this)">
+          <span>💰 RVG Gebühren & Rechnung</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: STAMMDATEN -->
+      <div id="tab-stammdaten" class="tab-content-panel active">
+        <div class="case-grid-two-col">
+          <div class="case-sidebar-card">
+            <div class="sidebar-title">Verfahrensdaten</div>
+            <div class="stammdaten-list">
+              <div class="stamm-item">
+                <label>Aktenzeichen (Kanzleiregister)</label>
+                <input type="text" value="${c.az}" readonly style="font-family: var(--font-mono); font-weight: 700; color: #60a5fa; background: var(--bg-input);">
+              </div>
+              <div class="stamm-item">
+                <label>Mandant / Antragsteller</label>
+                <input type="text" id="detailClientName" value="${this.escapeHtml(c.clientName)}" onchange="app.saveFieldChange('${c.id}', 'clientName', this.value)">
+              </div>
+              <div class="stamm-item">
+                <label>Telefon / Kontakt</label>
+                <input type="text" id="detailClientPhone" value="${this.escapeHtml(c.clientPhone)}" onchange="app.saveFieldChange('${c.id}', 'clientPhone', this.value)">
+              </div>
+              <div class="stamm-item">
+                <label>Gegenseite / Berliner Behörde</label>
+                <input type="text" id="detailOpponent" value="${this.escapeHtml(c.opponent)}" onchange="app.saveFieldChange('${c.id}', 'opponent', this.value)">
+              </div>
+              <div class="stamm-item">
+                <label>Tatzeit / Vorfallort in Berlin</label>
+                <input type="text" id="detailIncidentDate" value="${this.escapeHtml(c.incidentDate || '')}" onchange="app.saveFieldChange('${c.id}', 'incidentDate', this.value)">
+              </div>
+              <div class="stamm-item">
+                <label>Konkretes Rechtschutzziel</label>
+                <input type="text" id="detailDemands" value="${this.escapeHtml(c.demands || '')}" onchange="app.saveFieldChange('${c.id}', 'demands', this.value)">
+              </div>
+            </div>
+          </div>
+
+          <div class="case-editors-column">
+            <div class="editor-card">
+              <div class="editor-header">
+                <h3>Vollständige Schilderung des Sachverhalts</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Mandantenschilderung & Vorwürfe</span>
+              </div>
+              <textarea class="editor-textarea" id="detailDescription" rows="6" onchange="app.saveFieldChange('${c.id}', 'description', this.value)">${this.escapeHtml(c.description || '')}</textarea>
+            </div>
+
+            <div class="editor-card">
+              <div class="editor-header">
+                <h3>Zeugen & Aussagen</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Dienstnummern der Berliner Polizei, Augenzeugen</span>
+              </div>
+              <textarea class="editor-textarea" id="detailWitnesses" rows="4" placeholder="Zeugenaussagen, Dienstnummern von Polizisten, Augenzeugen..." onchange="app.saveFieldChange('${c.id}', 'witnesses', this.value)">${this.escapeHtml(c.witnesses || '')}</textarea>
+            </div>
+
+            <div class="editor-card">
+              <div class="editor-header">
+                <h3>Anwaltliche Handakte & Verteidigungsstrategie</h3>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-gold);">STRIKT VERTRAULICH (DR. LARS BAUMANN)</span>
+              </div>
+              <textarea class="editor-textarea" id="detailNotes" rows="5" placeholder="Prozesstaktik, Beweisanträge beim AG Tiergarten / LG Berlin..." onchange="app.saveFieldChange('${c.id}', 'notes', this.value)">${this.escapeHtml(c.notes || '')}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: BEWEISMITTEL & VIDEO TIMELINE MARKER -->
+      <div id="tab-evidence" class="tab-content-panel">
+        <div class="evidence-section">
+          <div class="upload-dropzone" id="dropzone-${c.id}" 
+               ondragover="app.handleDragOver(event)" 
+               ondragleave="app.handleDragLeave(event)" 
+               ondrop="app.handleDrop(event, '${c.id}')"
+               onclick="document.getElementById('fileInput-${c.id}').click()">
+            <input type="file" id="fileInput-${c.id}" style="display: none;" multiple accept="image/*,video/*,application/pdf" onchange="app.handleFileInput(event, '${c.id}')">
+            <div class="dropzone-icon">📥</div>
+            <div class="dropzone-title">Beweismittel per Drag & Drop hier ablegen oder klicken</div>
+            <div class="dropzone-desc">
+              Dateien werden felsenfest und ausschließlich dieser Akte (${c.az}) in der lokalen Datenbank zugeordnet.
+            </div>
+            <div class="dropzone-types">
+              <span class="type-pill">📸 Bilder (PNG, JPG)</span>
+              <span class="type-pill">🎥 Dashcam & Bodycam (MP4, WebM)</span>
+              <span class="type-pill">📄 Akten & Protokolle (PDF)</span>
+            </div>
+          </div>
+
+          <!-- Video Evidence Section with Timeline Markers -->
+          <div class="evidence-category-block">
+            <div class="evidence-category-header">
+              <h4>🎥 Dashcam-, Bodycam- & Videoaufnahmen (${videos.length})</h4>
+              <small style="color: var(--text-muted); font-weight: 500;">Integrierter Video Player mit Zeitstempel-Analyse</small>
+            </div>
+            <div class="media-grid-videos" id="videoGrid-${c.id}">
+              ${videos.length === 0 ? '<div style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Keine Videoaufnahmen hinterlegt. Ziehen Sie MP4/WebM Videos in die Upload-Box oben.</div>' : ''}
+              ${videos.map((v, idx) => `
+                <div class="video-card">
+                  <div class="video-player-frame">
+                    <video id="inlineVideoPlayer-${c.id}-${idx}" src="${v.data}" controls preload="metadata"></video>
+                  </div>
+                  <div class="video-card-body">
+                    <div class="video-card-title">${this.escapeHtml(v.name)}</div>
+                    <div class="video-card-meta">
+                      <span>${this.formatFileSize(v.size)}</span>
+                      <span>${new Date(v.uploadedAt).toLocaleDateString('de-DE')}</span>
+                    </div>
+
+                    <!-- Timeline Marker Controls -->
+                    <div class="video-annotation-panel">
+                      <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm" onclick="app.addVideoMarker('${c.id}', 'inlineVideoPlayer-${c.id}-${idx}')">
+                          📍 Zeitstempel markieren
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.openVideoModal('${v.id}')">Vollbild</button>
+                        <button class="btn btn-danger-outline btn-sm" onclick="app.removeFile('${v.id}')">Löschen</button>
+                      </div>
+
+                      <div class="timeline-markers-list" id="markersList-${c.id}">
+                        ${(c.markers || []).map((m, mIdx) => `
+                          <div class="marker-row">
+                            <span class="marker-time" onclick="app.jumpVideoToTime('inlineVideoPlayer-${c.id}-${idx}', ${m.time})">
+                              ⏱️ ${app.formatTime(m.time)}
+                            </span>
+                            <span class="marker-desc">${this.escapeHtml(m.desc)}</span>
+                            <button class="btn btn-danger-outline btn-sm" style="padding: 2px 6px;" onclick="app.deleteMarker('${c.id}', ${mIdx})">✕</button>
+                          </div>
+                        `).join('')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Images -->
+          <div class="evidence-category-block">
+            <div class="evidence-category-header">
+              <h4>📸 Fotobeweise & Screenshots (${images.length})</h4>
+              <small style="color: var(--text-muted); font-weight: 500;">Klick zur Vollbild-Vergrößerung (Lightbox)</small>
+            </div>
+            <div class="media-grid-images" id="imageGrid-${c.id}">
+              ${images.length === 0 ? '<div style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Keine Bildbeweise hinterlegt.</div>' : ''}
+              ${images.map(img => `
+                <div class="image-card" onclick="app.openLightbox('${img.id}')">
+                  <img src="${img.data}" alt="${this.escapeHtml(img.name)}">
+                  <div class="media-hover-overlay">
+                    <div class="media-card-title">${this.escapeHtml(img.name)}</div>
+                    <div class="media-actions" onclick="event.stopPropagation()">
+                      <button class="btn btn-secondary btn-sm" onclick="app.openLightbox('${img.id}')">Vorschau</button>
+                      <button class="btn btn-danger-outline btn-sm" onclick="app.removeFile('${img.id}')">✕</button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="evidence-category-block">
+            <div class="evidence-category-header">
+              <h4>📄 Dokumente & Schriftstücke (PDF) (${docs.length})</h4>
+              <small style="color: var(--text-muted); font-weight: 500;">Ermittlungsakten, Haftbefehle, Durchsuchungsprotokolle</small>
+            </div>
+            <div class="documents-list" id="docList-${c.id}">
+              ${docs.length === 0 ? '<div style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Keine Dokumente hinterlegt.</div>' : ''}
+              ${docs.map(doc => `
+                <div class="doc-item-row">
+                  <div class="doc-info">
+                    <span class="doc-icon">📑</span>
+                    <div>
+                      <div class="doc-name">${this.escapeHtml(doc.name)}</div>
+                      <div class="doc-meta">${this.formatFileSize(doc.size)} • Hochgeladen am ${new Date(doc.uploadedAt).toLocaleDateString('de-DE')}</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <a href="${doc.data}" download="${doc.name}" class="btn btn-secondary btn-sm">Herunterladen</a>
+                    <button class="btn btn-danger-outline btn-sm" onclick="app.removeFile('${doc.id}')">Löschen</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: SCHRIFTSÄTZE -->
+      <div id="tab-schriftsatz" class="tab-content-panel">
+        <div class="schriftsatz-builder">
+          <div class="editor-header">
+            <h3>Gerichtsfeste Schriftsätze formulieren (Gerichte Berlin)</h3>
+            <div class="schriftsatz-templates">
+              <button class="btn btn-secondary btn-sm" onclick="app.applySchriftsatzTemplate('${c.id}', 'haftbeschwerde')">
+                + AG Tiergarten: Haftbeschwerde
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="app.applySchriftsatzTemplate('${c.id}', 'dienstbeschwerde')">
+                + Polizei Berlin: Dienstaufsichtsbeschwerde
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="app.applySchriftsatzTemplate('${c.id}', 'schadensersatz')">
+                + Vorlage: Zahlungsaufforderung Schadensersatz
+              </button>
+            </div>
+          </div>
+
+          <textarea class="editor-textarea" id="detailSchriftsatz" rows="18" style="font-family: 'Times New Roman', serif; font-size: 1.05rem;" placeholder="Hier formuliert Dr. Lars Baumann den Schriftsatz..." onchange="app.saveFieldChange('${c.id}', 'schriftsatz', this.value)">${this.escapeHtml(c.schriftsatz || '')}</textarea>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+            <button class="btn btn-secondary" onclick="app.saveFieldChange('${c.id}', 'schriftsatz', document.getElementById('detailSchriftsatz').value)">
+              💾 Schriftsatz sichern
+            </button>
+            <button class="btn btn-primary" onclick="app.exportOfficialDocument('${c.id}')">
+              🖨️ Offizieller Schriftsatz mit Siegel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: RVG GEBÜHRENRECHNER -->
+      <div id="tab-rvg" class="tab-content-panel">
+        <div class="fee-calculator-panel">
+          <div class="editor-header">
+            <h3>RVG-Gebührenrechner & anwaltliche Kostennote</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Rechtsanwaltsvergütungsgesetz San Andreas / Berlin</span>
+          </div>
+
+          <div class="fee-calc-grid">
+            <div class="fee-calc-row">
+              <label>Grundgebühr (§ 14 RVG)</label>
+              <input type="number" id="calcGrundgebuehr" value="${c.feeGrundgebuehr || 200}" onchange="app.updateFeeCalculator('${c.id}')">
+            </div>
+            <div class="fee-calc-row">
+              <label>Verfahrensgebühr</label>
+              <input type="number" id="calcVerfahrensgebuehr" value="${c.feeVerfahrensgebuehr || 350}" onchange="app.updateFeeCalculator('${c.id}')">
+            </div>
+            <div class="fee-calc-row">
+              <label>Terminsgebühr (Gericht)</label>
+              <input type="number" id="calcTerminsgebuehr" value="${c.feeTerminsgebuehr || 0}" onchange="app.updateFeeCalculator('${c.id}')">
+            </div>
+          </div>
+
+          <div class="invoice-summary-box">
+            <div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Gesamthonorar netto zzgl. Auslagen (20 €) & 19% MwSt.:</div>
+              <div class="invoice-total" id="calcTotalInvoice">0,00 €</div>
+            </div>
+            <button class="btn btn-gold" onclick="app.copyInvoiceText('${c.id}')">
+              📋 Kostennote in Zwischenablage kopieren
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.updateFeeCalculator(c.id);
+  }
+
+  // --- TIMELINE MARKER LOGIC ---
+  addVideoMarker(caseId, videoElemId) {
+    const video = document.getElementById(videoElemId);
+    if (!video) return;
+
+    const currentSec = Math.floor(video.currentTime);
+    const desc = prompt(`Tatzeitpunkt bei ${this.formatTime(currentSec)} markieren:\n(z. B. "Widerrechtlicher Zugriff", "Dienstwaffe gezogen")`);
+    if (!desc) return;
+
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    if (!c.markers) c.markers = [];
+    c.markers.push({ time: currentSec, desc });
+    c.markers.sort((a, b) => a.time - b.time);
+
+    this.saveCases();
+    this.showToast(`Marker bei ${this.formatTime(currentSec)} hinzugefügt!`, 'success');
+    this.renderCaseDetailView(c);
+    const activeTabBtn = document.querySelector(`.case-tabs-nav .tab-link:nth-child(2)`);
+    if (activeTabBtn) this.switchDetailTab('evidence', activeTabBtn);
+  }
+
+  deleteMarker(caseId, markerIdx) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c || !c.markers) return;
+
+    c.markers.splice(markerIdx, 1);
+    this.saveCases();
+    this.renderCaseDetailView(c);
+    const activeTabBtn = document.querySelector(`.case-tabs-nav .tab-link:nth-child(2)`);
+    if (activeTabBtn) this.switchDetailTab('evidence', activeTabBtn);
+  }
+
+  jumpVideoToTime(videoElemId, sec) {
+    const video = document.getElementById(videoElemId);
+    if (video) {
+      video.currentTime = sec;
+      video.play();
+    }
+  }
+
+  formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // --- HAFT COUNTDOWN LOGIC ---
+  setHaftCountdown24h(caseId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    c.deadlineTimestamp = Date.now() + (24 * 3600 * 1000); // 24 Stunden Frist
+    this.saveCases();
+    this.showToast('24-Stunden-Haftprüfungsfrist gestartet!', 'warning');
+    this.startDeadlineCountdown(c);
+  }
+
+  startDeadlineCountdown(c) {
+    const display = document.getElementById('deadlineClockDisplay');
+    if (!display) return;
+
+    if (!c.deadlineTimestamp) {
+      display.textContent = 'Keine aktive Haftfrist';
+      display.className = 'deadline-timer normal';
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = c.deadlineTimestamp - now;
+
+      if (diff <= 0) {
+        display.textContent = '⚠️ FRIST ABGELAUFEN! Sofortige Entlassung (§ 128 StPO)';
+        display.className = 'deadline-timer urgent';
+        return;
+      }
+
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      display.textContent = `Noch ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} Std. bis Haftprüfung`;
+
+      if (h < 4) {
+        display.className = 'deadline-timer urgent';
+      } else if (h < 12) {
+        display.className = 'deadline-timer warning';
+      } else {
+        display.className = 'deadline-timer normal';
+      }
+    };
+
+    updateTimer();
+    if (this.activeCountdownInterval) clearInterval(this.activeCountdownInterval);
+    this.activeCountdownInterval = setInterval(updateTimer, 1000);
+  }
+
+  // --- RVG RECHNER LOGIC ---
+  updateFeeCalculator(caseId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    const g = parseFloat(document.getElementById('calcGrundgebuehr')?.value) || 0;
+    const v = parseFloat(document.getElementById('calcVerfahrensgebuehr')?.value) || 0;
+    const t = parseFloat(document.getElementById('calcTerminsgebuehr')?.value) || 0;
+
+    c.feeGrundgebuehr = g;
+    c.feeVerfahrensgebuehr = v;
+    c.feeTerminsgebuehr = t;
+    this.saveCases();
+
+    const netto = g + v + t + 20; // 20€ Auslagenpauschale
+    const brutto = netto * 1.19;
+
+    const totalEl = document.getElementById('calcTotalInvoice');
+    if (totalEl) {
+      totalEl.textContent = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(brutto);
+    }
+  }
+
+  copyInvoiceText(caseId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    const g = c.feeGrundgebuehr || 0;
+    const v = c.feeVerfahrensgebuehr || 0;
+    const t = c.feeTerminsgebuehr || 0;
+    const auslagen = 20;
+    const netto = g + v + t + auslagen;
+    const mwst = netto * 0.19;
+    const brutto = netto + mwst;
+
+    const invoiceText = `KOSTENNOTE / ANWALTLICHE GEBÜHRENABRECHNUNG
+Kanzlei Dr. jur. Lars Baumann • Kurfürstendamm 182, 10707 Berlin
+In der Sache: ${c.clientName} vs. ${c.opponent}
+Aktenzeichen: ${c.az}
+
+1. Grundgebühr gem. RVG:           ${g.toFixed(2)} €
+2. Verfahrensgebühr gem. RVG:       ${v.toFixed(2)} €
+3. Terminsgebühr gem. RVG:          ${t.toFixed(2)} €
+4. Post- und Telekommunikation:     ${auslagen.toFixed(2)} €
+--------------------------------------------------------
+Nettobetrag:                        ${netto.toFixed(2)} €
+Zzgl. 19% gesetzliche MwSt.:        ${mwst.toFixed(2)} €
+========================================================
+GESAMTBETRAG:                       ${brutto.toFixed(2)} €
+
+Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann.`;
+
+    navigator.clipboard.writeText(invoiceText).then(() => {
+      this.showToast('Kostennote in Zwischenablage kopiert!', 'success');
+    });
+  }
+
+  // --- OFFIZIELLER SCHRIFTSATZ MIT WACHSSIEGEL & UNTERSCHRIFT ---
+  exportOfficialDocument(caseId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    const dateNow = new Date().toLocaleDateString('de-DE');
+    const schriftsatzText = c.schriftsatz || 'Es liegt noch kein ausformulierter Schriftsatztext vor.';
+
+    const modalBody = document.getElementById('officialDocContent');
+    if (!modalBody) return;
+
+    modalBody.innerHTML = `
+      <div class="official-letterhead-card">
+        <div class="letterhead-header">
+          <div>
+            <div class="letterhead-firm-title">KANZLEI DR. JUR. LARS BAUMANN</div>
+            <div class="letterhead-firm-sub">Fachanwaltschaft für Strafrecht, Polizeirecht & Zivilansprüche</div>
+            <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 030 / 889 204 00</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">${c.az}</div>
+            <div style="font-size: 0.85rem; color: #64748b;">Berlin, den ${dateNow}</div>
+          </div>
+        </div>
+
+        <div class="letterhead-court-info">
+          In der Sache: <u>${this.escapeHtml(c.clientName)}</u> ./. <u>${this.escapeHtml(c.opponent)}</u><br>
+          Gegenstand: ${c.caseType}
+        </div>
+
+        <div class="letterhead-body-text">${this.escapeHtml(schriftsatzText)}</div>
+
+        <div class="letterhead-footer-sign">
+          <div class="wax-seal">
+            <span>§</span>
+          </div>
+          <div class="signature-block">
+            <div class="signature-svg">Dr. Lars Baumann</div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: #334155; margin-top: 4px;">
+              Dr. jur. Lars Baumann<br>
+              Rechtsanwalt
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.openModal('modalOfficialDocument');
+  }
+
+  switchDetailTab(tabName, clickedBtn) {
+    document.querySelectorAll('.case-tabs-nav .tab-link').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.remove('active'));
+
+    clickedBtn.classList.add('active');
+    const panel = document.getElementById(`tab-${tabName}`);
+    if (panel) panel.classList.add('active');
+    this.currentDetailTab = tabName;
+  }
+
+  saveFieldChange(caseId, field, value) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    c[field] = value;
+    this.saveCases();
+    this.showToast(`Gespeichert: ${field}`, 'info');
+  }
+
+  updateCaseStatus(caseId, newStatus) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+    c.status = newStatus;
+    this.saveCases();
+    this.showToast(`Status auf "${newStatus}" aktualisiert!`, 'success');
+  }
+
+  deleteCaseConfirm(caseId) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    if (confirm(`Achtung: Akte ${c.az} (${c.clientName}) unwiderruflich vernichten? Alle Notizen und Beweise werden gelöscht.`)) {
+      this.cases = this.cases.filter(item => item.id !== caseId);
+      this.saveCases();
+      this.showToast(`Akte ${c.az} vernichtet.`, 'info');
+      this.navigate('dashboard');
+    }
+  }
+
+  // --- MULTIMEDIA UPLOAD ---
+  handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('dragover');
+  }
+
+  handleDragLeave(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+  }
+
+  handleDrop(e, caseId) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      this.processUploadedFiles(files, caseId);
+    }
+  }
+
+  handleFileInput(e, caseId) {
+    const files = e.target.files;
+    if (files.length > 0) {
+      this.processUploadedFiles(files, caseId);
+    }
+  }
+
+  async processUploadedFiles(fileList, caseId) {
+    const currentCase = this.cases.find(c => c.id === caseId);
+    if (!currentCase) return;
+
+    let processedCount = 0;
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      let category = 'document';
+      if (file.type.startsWith('image/')) category = 'image';
+      else if (file.type.startsWith('video/')) category = 'video';
+
+      try {
+        const base64Data = await this.readFileAsDataURL(file);
+
+        const fileRecord = {
+          id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          caseId: caseId,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          category: category,
+          size: file.size,
+          data: base64Data,
+          uploadedAt: new Date().toISOString()
+        };
+
+        await this.storage.saveFile(fileRecord);
+        processedCount++;
+      } catch (err) {
+        console.error('Error processing file:', err);
+        this.showToast(`Fehler bei ${file.name}`, 'error');
+      }
+    }
+
+    if (processedCount > 0) {
+      currentCase.filesCount = (currentCase.filesCount || 0) + processedCount;
+      this.saveCases();
+      this.showToast(`${processedCount} Beweismittel zu Akte ${currentCase.az} hinzugefügt!`, 'success');
+
+      await this.renderCaseDetailView(currentCase);
+      const activeTabBtn = document.querySelector(`.case-tabs-nav .tab-link:nth-child(2)`);
+      if (activeTabBtn) this.switchDetailTab('evidence', activeTabBtn);
+    }
+  }
+
+  readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async removeFile(fileId) {
+    if (!confirm('Dieses Beweismittel unwiderruflich aus der Akte löschen?')) return;
+    await this.storage.deleteFile(fileId);
+    this.showToast('Beweismittel gelöscht.', 'info');
+
+    const currentCase = this.cases.find(c => c.id === this.currentCaseId);
+    if (currentCase) {
+      const remaining = await this.storage.getFilesByCaseId(currentCase.id);
+      currentCase.filesCount = remaining.length;
+      this.saveCases();
+      await this.renderCaseDetailView(currentCase);
+      const activeTabBtn = document.querySelector(`.case-tabs-nav .tab-link:nth-child(2)`);
+      if (activeTabBtn) this.switchDetailTab('evidence', activeTabBtn);
+    }
+  }
+
+  // --- LIGHTBOX & VIDEO MODALS ---
+  async openLightbox(fileId) {
+    const record = await this.storage.getFileById(fileId);
+    if (!record) return;
+
+    const img = document.getElementById('lightboxImage');
+    const title = document.getElementById('lightboxTitle');
+    const meta = document.getElementById('lightboxMeta');
+    const downloadBtn = document.getElementById('lightboxDownloadBtn');
+
+    img.src = record.data;
+    title.textContent = `Beweisfoto: ${record.name}`;
+    meta.textContent = `${this.formatFileSize(record.size)} • Hochgeladen: ${new Date(record.uploadedAt).toLocaleString('de-DE')}`;
+    downloadBtn.onclick = () => {
+      const a = document.createElement('a');
+      a.href = record.data;
+      a.download = record.name;
+      a.click();
+    };
+
+    this.openModal('modalLightbox');
+  }
+
+  closeLightbox() {
+    this.closeModal('modalLightbox');
+  }
+
+  async openVideoModal(fileId) {
+    const record = await this.storage.getFileById(fileId);
+    if (!record) return;
+
+    const video = document.getElementById('activeBeweisPlayer');
+    const title = document.getElementById('videoModalTitle');
+    const meta = document.getElementById('videoModalMeta');
+    const downloadBtn = document.getElementById('videoDownloadBtn');
+
+    video.src = record.data;
+    title.textContent = `Beweisvideo / Footage: ${record.name}`;
+    meta.textContent = `${this.formatFileSize(record.size)} • ${new Date(record.uploadedAt).toLocaleString('de-DE')}`;
+
+    downloadBtn.onclick = () => {
+      const a = document.createElement('a');
+      a.href = record.data;
+      a.download = record.name;
+      a.click();
+    };
+
+    this.openModal('modalVideoPlayer');
+  }
+
+  closeVideoModal() {
+    const video = document.getElementById('activeBeweisPlayer');
+    if (video) {
+      video.pause();
+      video.src = '';
+    }
+    this.closeModal('modalVideoPlayer');
+  }
+
+  applySchriftsatzTemplate(caseId, templateType) {
+    const c = this.cases.find(item => item.id === caseId);
+    if (!c) return;
+
+    const dateNow = new Date().toLocaleDateString('de-DE');
+    let text = '';
+
+    if (templateType === 'haftbeschwerde') {
+      text = SchriftsatzTemplates.getHaftbeschwerde(c, dateNow);
+    } else if (templateType === 'dienstbeschwerde') {
+      text = SchriftsatzTemplates.getDienstbeschwerde(c, dateNow);
+    } else if (templateType === 'schadensersatz') {
+      text = SchriftsatzTemplates.getSchadensersatz(c, dateNow);
+    }
+
+    const field = document.getElementById('detailSchriftsatz');
+    if (field) {
+      field.value = text;
+      this.saveFieldChange(caseId, 'schriftsatz', text);
+    }
+  }
+
+  exportAllDatabase() {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.cases, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', `Kanzlei_Lars_Baumann_Berlin_Backup_${new Date().toISOString().slice(0, 10)}.json`);
+    dlAnchor.click();
+    this.showToast('Datenbank-Backup heruntergeladen!', 'success');
+  }
+
+  openModal(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.classList.add('active');
+  }
+
+  closeModal(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.classList.remove('active');
+  }
+
+  showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✓';
+    if (type === 'error') icon = '⚠️';
+
+    toast.innerHTML = `<span>${icon}</span> <span>${this.escapeHtml(message)}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(100%)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+}
+
+const app = new KanzleiApp();
+window.app = app;
+
+document.addEventListener('DOMContentLoaded', () => {
+  app.init();
+});

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanzlei Dr. jur. Lars Baumann – Berlin | Strafverteidigung & Zivilrecht</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="theme-law">
+  <!-- Offizielle Berliner Kanzlei-Topbar -->
+  <header class="official-topbar">
+    <div class="topbar-inner">
+      <div class="badge-seal">
+        <span class="seal-icon">⚖</span>
+        <span class="seal-text">Rechtsanwaltskammer Berlin • Fachanwaltschaft für Strafrecht</span>
+      </div>
+      <div class="topbar-right">
+        <span class="system-time" id="systemTime">BERLIN ONLINE</span>
+        <span class="status-indicator live"><span class="dot"></span> Mandatsprüfung Aktiv</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="main-navbar">
+    <div class="nav-container">
+      <a href="#" class="brand-logo" onclick="app.navigate('portal'); return false;">
+        <div class="brand-crest">
+          <div class="crest-shield">§</div>
+        </div>
+        <div class="brand-titles">
+          <span class="brand-name">KANZLEI DR. JUR. LARS BAUMANN</span>
+          <span class="brand-sub">Kurfürstendamm 182, 10707 Berlin • Strafrecht & Zivilverfahren</span>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <button class="nav-btn active" id="nav-portal" onclick="app.navigate('portal')">
+          <span class="icon">🏛</span> Start & Kanzleiordnung
+        </button>
+        <button class="nav-btn" id="nav-fees" onclick="app.scrollToSection('gebuehren')">
+          <span class="icon">💶</span> Gebührenordnung
+        </button>
+        <button class="nav-btn" id="nav-tracker" onclick="app.navigate('tracker')">
+          <span class="icon">🔍</span> Akteneinsicht / Status
+        </button>
+        <button class="nav-btn" id="nav-submit" onclick="app.navigate('submit')">
+          <span class="icon">✍</span> Fall einreichen
+        </button>
+        <button class="nav-btn btn-internal" id="nav-dashboard" onclick="app.openInternalPortal()">
+          <span class="icon">🔒</span> Kanzlei-Interna (Dr. Lars Baumann)
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN APP VIEWPORT -->
+  <main id="app-viewport">
+    
+    <!-- ================= VIEW 1: PUBLIC PORTAL, KANZLEIORDNUNG & GEBÜHREN ================= -->
+    <section id="view-portal" class="view-section active">
+      <div class="hero-banner">
+        <div class="hero-content">
+          <div class="hero-tag">UNABHÄNGIG • KOMPROMISSLOS • BERLIN</div>
+          <h1 class="hero-headline">Effektive Verteidigung vor den Gerichten des Landes Berlin.</h1>
+          <p class="hero-lead">
+            Dr. jur. Lars Baumann vertritt Bürger, Beamte und Gewerbetreibende in Berlin. 
+            Keine exklusiven Behördenverträge, keine Gefälligkeiten für Polizei oder Justiz, strikte Unabhängigkeit.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="app.navigate('submit')">
+              <span>Fall online zur Ersteinschätzung einreichen</span>
+              <span class="arrow">→</span>
+            </button>
+            <button class="btn btn-secondary" onclick="app.scrollToSection('gebuehren')">
+              <span>💶 Offizielle Gebührentabelle einsehen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Principles / Kanzleiordnung -->
+      <section class="content-block" id="kanzleiordnung">
+        <div class="section-header">
+          <span class="section-eyebrow">UNUMSTÖSSLICHE GRUNDSÄTZE</span>
+          <h2>Die Kanzleiordnung & Berliner Unabhängigkeits-Charta</h2>
+          <div class="rule-divider"></div>
+        </div>
+
+        <div class="principles-grid">
+          <div class="principle-card">
+            <div class="principle-num">01</div>
+            <div class="principle-icon">⚖️</div>
+            <h3>Keine Exklusivverträge</h3>
+            <p>
+              Die Kanzlei schließt <strong>keine</strong> exklusiven Honorar- oder Beraterverträge mit der Polizei Berlin, 
+              den Bezirksämtern oder der Berliner Justiz ab. Unsere anwaltliche Unabhängigkeit ist unverkäuflich.
+            </p>
+          </div>
+
+          <div class="principle-card highlight-card">
+            <div class="principle-num">02</div>
+            <div class="principle-icon">⚡</div>
+            <h3>„Wer zuerst kommt, mahlt zuerst“</h3>
+            <p>
+              Bei Interessenkonflikten in derselben Sache gilt ausnahmslos der Zeitstempel des Eingangs. 
+              Wer den Fall zuerst mit begründeten Angaben einreicht, wird mandatiert – unabhängig von Rang, Status oder Kontostand.
+            </p>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-num">03</div>
+            <div class="principle-icon">🛡️</div>
+            <h3>Strikte Verschwiegenheit</h3>
+            <p>
+              Alle übermittelten Daten, Schilderungen und Beweise unterliegen dem anwaltlichen Berufsgeheimnis (§ 203 StGB, BORA). 
+              Keine Weitergabe an Berliner Ermittlungsbehörden ohne Mandantenfreigabe.
+            </p>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-num">04</div>
+            <div class="principle-icon">📑</div>
+            <h3>Lückenlose Dokumentation</h3>
+            <p>
+              Jeder Sachverhalt wird digital aktenkundig erfasst. Bodycam-, Dashcam- 
+              und Zeugenaussagen werden revisionssicher archiviert und vor Berliner Gerichten akribisch verwertet.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= OFFENE GEBÜHRENORDNUNG ================= -->
+      <section class="content-block bg-slate" id="gebuehren">
+        <div class="section-header">
+          <span class="section-eyebrow">TRANSPARENZ & HONORAR</span>
+          <h2>Amtliche Gebührenordnung Dr. jur. Lars Baumann</h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 8px;">
+            Vergütung nach dem Rechtsanwaltsvergütungsgesetz (RVG) und individueller Honorarvereinbarung.
+          </p>
+          <div class="rule-divider"></div>
+        </div>
+
+        <div class="fees-grid">
+          <div class="fee-card">
+            <div class="fee-card-top">
+              <span class="fee-category-badge">Erstkontakt</span>
+              <div class="fee-card-title">Mündliche Erstberatung</div>
+              <div class="fee-card-desc">Umfassende Prüfung der Sach- und Rechtslage, Risikobewertung sowie Formulierung erster Verteidigungsschritte.</div>
+            </div>
+            <div class="fee-card-price" id="fee-erstberatung">190 €</div>
+          </div>
+
+          <div class="fee-card highlight">
+            <div class="fee-card-top">
+              <span class="fee-category-badge">Eilbedürftig</span>
+              <div class="fee-card-title">Haftprüfung & Eilantrag</div>
+              <div class="fee-card-desc">Sofortiger anwaltlicher Beistand bei Vorführung am Amtsgericht Tiergarten (Kirchstraße 6) zur Aufhebung des Haftbefehls.</div>
+            </div>
+            <div class="fee-card-price" id="fee-haftpruefung">950 €</div>
+          </div>
+
+          <div class="fee-card">
+            <div class="fee-card-top">
+              <span class="fee-category-badge">Strafrecht</span>
+              <div class="fee-card-title">Strafverteidigung Ermittlung</div>
+              <div class="fee-card-desc">Akteneinsicht bei der Staatsanwaltschaft Berlin, Schutzschrift und Antrag auf Verfahrenseinstellung nach § 170 Abs. 2 StPO.</div>
+            </div>
+            <div class="fee-card-price" id="fee-strafverteidigung">750 €</div>
+          </div>
+
+          <div class="fee-card">
+            <div class="fee-card-top">
+              <span class="fee-category-badge">Polizeirecht</span>
+              <div class="fee-card-title">Dienstaufsichtsbeschwerde</div>
+              <div class="fee-card-desc">Vertretung gegen willkürliche Maßnahmen der Polizei Berlin, Beschlagnahmen oder rechtswidrigen Gewahrsam.</div>
+            </div>
+            <div class="fee-card-price" id="fee-polizeirecht">550 €</div>
+          </div>
+
+          <div class="fee-card">
+            <div class="fee-card-top">
+              <span class="fee-category-badge">Zivilrecht</span>
+              <div class="fee-card-title">Zivilklage & Schmerzensgeld</div>
+              <div class="fee-card-desc">Schadensersatzforderungen nach Unfällen oder Amtspflichtverletzungen vor dem Landgericht Berlin.</div>
+            </div>
+            <div class="fee-card-price" id="fee-zivilklage">800 €</div>
+          </div>
+
+          <div class="fee-card">
+            <div class="fee-card-top">
+              <span class="fee-category-badge">Individuell</span>
+              <div class="fee-card-title">Zeithonorar (Komplexmandate)</div>
+              <div class="fee-card-desc">Abrechnung nach Zeitaufwand für aufwendige Wirtschaftsstrafsachen, Gutachten und Verhandlungen.</div>
+            </div>
+            <div class="fee-card-price" id="fee-stundensatz">280 € / Std.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <div class="cta-banner">
+        <div>
+          <h3>Sie benötigen anwaltliche Vertretung in Berlin?</h3>
+          <p>Reichen Sie Ihren Fall direkt online ein. Das Kanzleisystem vergibt automatisch ein juristisches Aktenzeichen nach Rechtsgebiet.</p>
+        </div>
+        <button class="btn btn-primary" onclick="app.navigate('submit')">Jetzt Akte anlegen</button>
+      </div>
+    </section>
+
+
+    <!-- ================= VIEW: BÜRGER STATUS TRACKER ================= -->
+    <section id="view-tracker" class="view-section">
+      <div class="tracker-box">
+        <div class="form-header">
+          <div class="form-badge">BÜRGER-PORTAL BERLIN</div>
+          <h2>Live-Status & Akteneinsicht abfragen</h2>
+          <p class="form-subtitle">
+            Geben Sie Ihr Aktenzeichen (z. B. <code>101/26 StR</code>) und Ihre Telefonnummer ein, um den aktuellen Bearbeitungsstand Ihrer Akte einzusehen.
+          </p>
+        </div>
+
+        <form onsubmit="app.handlePublicTracker(event)">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="trackerInputAz">Aktenzeichen *</label>
+              <input type="text" id="trackerInputAz" required placeholder="z. B. 101/26 StR">
+            </div>
+            <div class="input-group">
+              <label for="trackerInputPhone">Telefonnummer / Funk</label>
+              <input type="text" id="trackerInputPhone" placeholder="z. B. 0171 / 8920144">
+            </div>
+          </div>
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">Status live abrufen</button>
+          </div>
+        </form>
+
+        <div id="trackerErrorMsg" class="form-alert error" style="display: none; margin-top: 20px;">
+          Keine passende Akte unter diesem Aktenzeichen gefunden! Bitte prüfen Sie Ihre Eingabe.
+        </div>
+
+        <!-- Live Tracker Result Box -->
+        <div id="trackerResultBox" style="display: none; margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="color: var(--text-main); font-size: 1.3rem;" id="trackClientName">Alexander Wendt</h3>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Gegenseite: <span id="trackOpponent">Polizei Berlin</span></span>
+            </div>
+            <div class="az-tag" id="trackAz" style="font-size: 1.05rem;">101/26 StR</div>
+          </div>
+
+          <!-- Step Progression -->
+          <div class="tracker-timeline">
+            <div class="tracker-step" id="trackStep1">
+              <div class="step-circle">1</div>
+              <div class="step-label">Eingereicht</div>
+            </div>
+            <div class="tracker-step" id="trackStep2">
+              <div class="step-circle">2</div>
+              <div class="step-label">In Bearbeitung</div>
+            </div>
+            <div class="tracker-step" id="trackStep3">
+              <div class="step-circle">3</div>
+              <div class="step-label">Vor Gericht</div>
+            </div>
+            <div class="tracker-step" id="trackStep4">
+              <div class="step-circle">4</div>
+              <div class="step-label">Archiviert</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 0.9rem;">
+            <strong>Aktueller Verfahrensstand:</strong> <span id="trackStatusText" style="color: var(--accent-gold-light); font-weight: 700;">In Bearbeitung</span><br>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Dr. jur. Lars Baumann hat die Akteneinsicht beantragt und prüft die vorliegenden Beweismittel.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================= VIEW 2: CASE SUBMISSION ================= -->
+    <section id="view-submit" class="view-section">
+      <div class="form-container">
+        <div class="form-header">
+          <div class="form-badge">ÖFFENTLICHES ANNAHMEPORTAL BERLIN</div>
+          <h2>Fall zur anwaltlichen Ersteinschätzung einreichen</h2>
+          <p class="form-subtitle">
+            Hinweis: Nach Absenden vergibt das Kanzleisystem automatisch das amtliche Kanzlei-Aktenzeichen 
+            (z. B. <code>104/26 StR</code> oder <code>105/26 PolR</code>) und registriert den Fall in der Kanzleidatenbank.
+          </p>
+        </div>
+
+        <form id="publicCaseForm" onsubmit="app.handlePublicSubmit(event)">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="pubClientName">Vor- & Zuname des Mandanten / Einreichers *</label>
+              <input type="text" id="pubClientName" required placeholder="z. B. Maximilian Kraft oder POK Richter">
+            </div>
+
+            <div class="input-group">
+              <label for="pubClientPhone">Telefonnummer / Mobilfunk *</label>
+              <input type="text" id="pubClientPhone" required placeholder="z. B. 0170 / 1234567">
+            </div>
+
+            <div class="input-group">
+              <label for="pubCaseType">Verfahrensart / Rechtsgebiet *</label>
+              <select id="pubCaseType" required>
+                <option value="Strafverteidigung">Strafverteidigung [StR] (Tatvorwurf, Haftprüfung AG Tiergarten)</option>
+                <option value="Polizeirecht / Dienstbeschwerde">Polizeirecht [PolR] (Dienstaufsichtsbeschwerde Polizei Berlin)</option>
+                <option value="Zivilrecht / Schadensersatz">Zivilrecht [Ziv] (Schadensersatz, Schmerzensgeld)</option>
+                <option value="Waffen- & Lizenzrecht">Waffen- & Gewerbelizenzen [WaffR] (LABO Berlin)</option>
+                <option value="Dienstaufsicht">Interne Ermittlungen [IAD] / Beamtenrecht</option>
+                <option value="Sonstiges">Sonstiges Eilverfahren [Allg]</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="pubOpponent">Gegenseite / Berliner Behörde oder Person *</label>
+              <input type="text" id="pubOpponent" required placeholder="z. B. Polizei Berlin Abschnitt 32 oder Fa. Berliner Wachschutz">
+            </div>
+
+            <div class="input-group full-width">
+              <label for="pubIncidentDate">Datum & Ort des Vorfalls in Berlin *</label>
+              <input type="text" id="pubIncidentDate" required placeholder="z. B. 04.11.2026 gegen 22:00 Uhr am Kottbusser Tor / Kreuzberg">
+            </div>
+
+            <div class="input-group full-width">
+              <label for="pubDescription">Ausführliche Sachverhaltsschilderung *</label>
+              <textarea id="pubDescription" rows="6" required placeholder="Beschreiben Sie präzise: Was ist geschehen? Welche Vorwürfe stehen im Raum? Welche Polizeibeamten waren anwesend? Welche Rechte wurden evtl. verletzt?"></textarea>
+            </div>
+
+            <div class="input-group full-width">
+              <label for="pubDemands">Ihr konkretes Rechtsschutzziel</label>
+              <input type="text" id="pubDemands" placeholder="z. B. Entlassung aus Gewahrsam, Akteneinsicht, Schadenersatz 15.000 €">
+            </div>
+
+            <div class="input-group full-width">
+              <label class="checkbox-container">
+                <input type="checkbox" id="pubAcceptRules" required>
+                <span>Ich bestätige die Richtigkeit der Angaben und akzeptiere die Berliner Kanzleiordnung (Mandatsannahme nach Eingangsprinzip).</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <button type="button" class="btn btn-secondary" onclick="app.navigate('portal')">Abbrechen</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitCase">
+              <span>Akte registrieren & Aktenzeichen anfordern</span>
+              <span class="arrow">✓</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+
+    <!-- ================= VIEW 3: INTERNAL DASHBOARD ================= -->
+    <section id="view-dashboard" class="view-section">
+      <div class="dashboard-wrapper">
+        <div class="dashboard-header">
+          <div>
+            <div class="internal-tag">VERTRAULICH • KANZLEI-INTERN BERLIN</div>
+            <h2>Aktenverwaltung Dr. jur. Lars Baumann</h2>
+            <p class="dash-subtitle">Zentrales Fallregister & Beweismittel-Verwaltung Berlin</p>
+          </div>
+          <div class="dash-actions">
+            <button class="btn btn-secondary" onclick="app.openFeeSettingsModal()">
+              <span>💶 Gebühren anpassen</span>
+            </button>
+            <button class="btn btn-secondary" onclick="app.exportAllDatabase()">
+              <span>💾 DB Backup Export</span>
+            </button>
+            <button class="btn btn-primary" onclick="app.openNewCaseModal()">
+              <span>+ Neue Akte anlegen</span>
+            </button>
+            <button class="btn btn-danger-outline" onclick="app.lockInternalPortal()" title="Kanzlei-Interna sperren">
+              <span>🔒 Abmelden</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-val" id="metricTotalCases">0</div>
+            <div class="metric-label">Gesamte Akten</div>
+          </div>
+          <div class="metric-card metric-orange">
+            <div class="metric-val" id="metricSubmitted">0</div>
+            <div class="metric-label">Neu Eingereicht</div>
+          </div>
+          <div class="metric-card metric-blue">
+            <div class="metric-val" id="metricInProgress">0</div>
+            <div class="metric-label">In Bearbeitung</div>
+          </div>
+          <div class="metric-card metric-purple">
+            <div class="metric-val" id="metricInCourt">0</div>
+            <div class="metric-label">Vor Gericht</div>
+          </div>
+          <div class="metric-card metric-green">
+            <div class="metric-val" id="metricArchived">0</div>
+            <div class="metric-label">Archiviert / Erledigt</div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-panel">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="caseSearchInput" placeholder="Suche nach Aktenzeichen (z. B. 101/26), Mandant, Gegenseite..." oninput="app.renderCasesTable()">
+          </div>
+
+          <div class="filter-group">
+            <label for="filterStatus">Status:</label>
+            <select id="filterStatus" onchange="app.renderCasesTable()">
+              <option value="ALL">Alle Status</option>
+              <option value="Eingereicht">Eingereicht</option>
+              <option value="In Bearbeitung">In Bearbeitung</option>
+              <option value="Vor Gericht">Vor Gericht</option>
+              <option value="Archiviert">Archiviert</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filterType">Rechtsgebiet:</label>
+            <select id="filterType" onchange="app.renderCasesTable()">
+              <option value="ALL">Alle Rechtsgebiete</option>
+              <option value="Strafverteidigung">Strafverteidigung [StR]</option>
+              <option value="Polizeirecht / Dienstbeschwerde">Polizeirecht [PolR]</option>
+              <option value="Zivilrecht / Schadensersatz">Zivilrecht [Ziv]</option>
+              <option value="Waffen- & Lizenzrecht">Waffen- & Lizenzrecht [WaffR]</option>
+              <option value="Dienstaufsicht">Dienstaufsicht [IAD]</option>
+              <option value="Sonstiges">Sonstiges</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="sortOrder">Sortierung:</label>
+            <select id="sortOrder" onchange="app.renderCasesTable()">
+              <option value="newest">Neueste zuerst</option>
+              <option value="oldest">Älteste zuerst</option>
+              <option value="az_asc">Aktenzeichen aufsteigend</option>
+              <option value="az_desc">Aktenzeichen absteigend</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="cases-table">
+            <thead>
+              <tr>
+                <th style="width: 170px;">Aktenzeichen</th>
+                <th>Mandant / Einreicher</th>
+                <th>Gegenseite</th>
+                <th>Rechtsgebiet</th>
+                <th>Eingang / Datum</th>
+                <th>Beweise</th>
+                <th>Status</th>
+                <th style="width: 150px; text-align: right;">Aktionen</th>
+              </tr>
+            </thead>
+            <tbody id="casesTableBody">
+            </tbody>
+          </table>
+          <div id="tableEmptyNotice" class="empty-state" style="display: none;">
+            <div class="empty-icon">🗂️</div>
+            <h4>Keine Akten gefunden</h4>
+            <p>Es entsprechen keine Akten den Filterkriterien oder es wurden noch keine Fälle erfasst.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================= VIEW 4: CASE DETAIL VIEW ================= -->
+    <section id="view-case-detail" class="view-section">
+      <div class="case-detail-container" id="caseDetailContent">
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Password Modal -->
+  <div class="modal-backdrop" id="modalPassword">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <div class="modal-seal">🔒</div>
+        <h3>Kanzlei-Interna Authentifizierung</h3>
+        <p class="modal-sub">Geschützter Arbeitsplatz für Dr. jur. Lars Baumann.</p>
+      </div>
+      <form onsubmit="app.handleAuthSubmit(event)">
+        <div class="input-group">
+          <label for="authPassword">Kanzlei-Passwort</label>
+          <input type="password" id="authPassword" placeholder="Passwort eingeben (Default: baumann2026)" required autofocus>
+          <small class="helper-text">Standard-Zugangspasswort: <code>baumann2026</code></small>
+        </div>
+        <div id="authErrorMsg" class="form-alert error" style="display: none;">Falsches Passwort! Zugriff verweigert.</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalPassword')">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Entsperren</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT FEES MODAL (Gebühren anpassen) -->
+  <div class="modal-backdrop" id="modalEditFees">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-seal">💶</div>
+        <h3>Gebührensätze anpassen (Dr. Lars Baumann)</h3>
+        <p class="modal-sub">Diese Sätze werden sofort in der öffentlichen Kanzleitabelle und im RVG-Rechner aktualisiert.</p>
+      </div>
+      <form onsubmit="app.handleSaveFees(event)">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="inputFeeErstberatung">Mündliche Erstberatung (€) *</label>
+            <input type="number" id="inputFeeErstberatung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeHaftpruefung">Haftprüfung & Eilantrag (€) *</label>
+            <input type="number" id="inputFeeHaftpruefung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeStrafverteidigung">Strafverteidigung Ermittlung (€) *</label>
+            <input type="number" id="inputFeeStrafverteidigung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeePolizeirecht">Dienstaufsichtsbeschwerde (€) *</label>
+            <input type="number" id="inputFeePolizeirecht" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeZivilklage">Zivilklage & Schmerzensgeld (€) *</label>
+            <input type="number" id="inputFeeZivilklage" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeStundensatz">Zeithonorar pro Stunde (€) *</label>
+            <input type="number" id="inputFeeStundensatz" required min="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalEditFees')">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Gebührensätze speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manual Case Modal -->
+  <div class="modal-backdrop" id="modalNewCase">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-seal">📁</div>
+        <h3>Manuelle Aktenanlage Berlin (Direktmandat)</h3>
+        <p class="modal-sub">Legt unmittelbar eine neue Akte mit dem passenden Berliner Fach-Aktenzeichen an.</p>
+      </div>
+      <form onsubmit="app.handleCreateCaseModal(event)">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="mClientName">Name des Mandanten *</label>
+            <input type="text" id="mClientName" required placeholder="z. B. Jonas Weber">
+          </div>
+          <div class="input-group">
+            <label for="mClientPhone">Telefon / Kontakt *</label>
+            <input type="text" id="mClientPhone" required placeholder="z. B. 0172 / 9912044">
+          </div>
+          <div class="input-group">
+            <label for="mOpponent">Gegenseite (Berliner Behörde / Person) *</label>
+            <input type="text" id="mOpponent" required placeholder="z. B. Polizei Berlin Direktion 2">
+          </div>
+          <div class="input-group">
+            <label for="mCaseType">Falltyp / Rechtsgebiet *</label>
+            <select id="mCaseType" required>
+              <option value="Strafverteidigung">Strafverteidigung [StR]</option>
+              <option value="Polizeirecht / Dienstbeschwerde">Polizeirecht / Dienstbeschwerde [PolR]</option>
+              <option value="Zivilrecht / Schadensersatz">Zivilrecht [Ziv]</option>
+              <option value="Waffen- & Lizenzrecht">Waffen- & Lizenzrecht [WaffR]</option>
+              <option value="Dienstaufsicht">Dienstaufsicht [IAD]</option>
+              <option value="Sonstiges">Sonstiges</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="mStatus">Initialer Status</label>
+            <select id="mStatus">
+              <option value="In Bearbeitung" selected>In Bearbeitung</option>
+              <option value="Eingereicht">Eingereicht</option>
+              <option value="Vor Gericht">Vor Gericht</option>
+              <option value="Archiviert">Archiviert</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="mIncidentDate">Tatzeit / Vorfallort in Berlin</label>
+            <input type="text" id="mIncidentDate" placeholder="z. B. Gestern Nacht, Berlin-Neukölln">
+          </div>
+          <div class="input-group full-width">
+            <label for="mDescription">Sachverhalt & Vorwürfe *</label>
+            <textarea id="mDescription" rows="4" required placeholder="Erste Fallschilderung, Tatvorwurf, Kaution..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalNewCase')">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Akte anlegen & öffnen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Success Modal -->
+  <div class="modal-backdrop" id="modalSubmissionSuccess">
+    <div class="modal-card modal-sm success-modal-card">
+      <div class="success-seal-badge">✓</div>
+      <h3>Mandat erfolgreich registriert!</h3>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+        Kanzlei Dr. jur. Lars Baumann • Berlin
+      </p>
+      <div class="success-az-box" id="successModalAz">104/26 StR</div>
+      <p class="success-info-text" id="successModalDesc">
+        Ihre Akte wurde verbindlich im Kanzleiregister aufgenommen. Es gilt das strenge Eingangsprinzip der Kanzleiordnung („Wer zuerst kommt, mahlt zuerst“).
+      </p>
+      <div class="modal-footer" style="justify-content: center; border: none; padding-top: 0;">
+        <button type="button" class="btn btn-primary" onclick="app.closeModal('modalSubmissionSuccess')">
+          Verstanden & Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFIZIELLER SCHRIFTSATZ MODAL (Mit Siegel & Unterschrift) -->
+  <div class="modal-backdrop" id="modalOfficialDocument">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-seal">📜</div>
+        <h3>Offizieller Schriftsatz zur gerichtlichen Vorlage</h3>
+        <p class="modal-sub">Druckansicht mit digitalem Kanzlei-Siegel und Signatur von Dr. jur. Lars Baumann.</p>
+      </div>
+      <div id="officialDocContent">
+        <!-- Rendered dynamically via app.exportOfficialDocument -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+          <span>🖨️ Schriftsatz drucken / Als PDF speichern</span>
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalOfficialDocument')">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div class="modal-backdrop lightbox-backdrop" id="modalLightbox" onclick="app.closeLightbox(event)">
+    <div class="lightbox-container" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <span id="lightboxTitle">Beweisfoto</span>
+        <button class="close-btn" onclick="app.closeModal('modalLightbox')">✕</button>
+      </div>
+      <div class="lightbox-body">
+        <img id="lightboxImage" src="" alt="Beweis-Vollansicht">
+      </div>
+      <div class="lightbox-footer">
+        <span id="lightboxMeta"></span>
+        <button class="btn btn-secondary btn-sm" id="lightboxDownloadBtn">Herunterladen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Player Modal -->
+  <div class="modal-backdrop lightbox-backdrop" id="modalVideoPlayer" onclick="app.closeVideoModal(event)">
+    <div class="lightbox-container video-modal-container" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <span id="videoModalTitle">Beweisvideo / Bodycam-Footage</span>
+        <button class="close-btn" onclick="app.closeVideoModal()">✕</button>
+      </div>
+      <div class="video-modal-body">
+        <video id="activeBeweisPlayer" controls autoplay style="width: 100%; max-height: 70vh; background: #000;"></video>
+      </div>
+      <div class="lightbox-footer">
+        <span id="videoModalMeta"></span>
+        <button class="btn btn-secondary btn-sm" id="videoDownloadBtn">Original herunterladen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modular Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
