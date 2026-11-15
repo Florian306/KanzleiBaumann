@@ -1812,7 +1812,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
       content
     });
     c.schriftsatz = field.value;
-    this.saveCases();
+    this.saveCases(c);
     this.openCaseDetail(caseId, 'schriftsatz');
     this.showToast('Schriftsatz mit Zeitstempel an Akte angehängt!', 'success');
   }
@@ -1823,7 +1823,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     const entry = c.pleadingsHistory.find(p => p.id === entryId);
     if (!entry) return;
     c.schriftsatz = entry.content;
-    this.saveCases();
+    this.saveCases(c);
     const field = document.getElementById('detailSchriftsatz');
     if (field) {
       field.value = entry.content;
@@ -1836,7 +1836,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     const c = this.cases.find(item => item.id === caseId);
     if (!c || !Array.isArray(c.pleadingsHistory)) return;
     c.pleadingsHistory = c.pleadingsHistory.filter(p => p.id !== entryId);
-    this.saveCases();
+    this.saveCases(c);
     this.openCaseDetail(caseId, 'schriftsatz');
   }
 
