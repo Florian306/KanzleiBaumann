@@ -39,6 +39,72 @@ class KanzleiApp {
     if (typeof InternaModules !== 'undefined') {
       InternaModules.init();
     }
+    this.syncFromCloud();
+  }
+
+  async syncFromCloud() {
+    try {
+      const [casesRes, internaRes] = await Promise.all([
+        fetch('/api/cases'),
+        fetch('/api/interna')
+      ]);
+
+      if (casesRes.ok) {
+        const data = await casesRes.json();
+        if (Array.isArray(data.cases)) {
+          this.cases = data.cases;
+          localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
+          this.renderCasesTable();
+          this.updateMetrics();
+          this.updateAzPreview();
+        }
+      }
+
+      if (internaRes.ok) {
+        const { data } = await internaRes.json();
+        if (data) {
+          if (data.fees) {
+            this.fees = { ...DEFAULT_FEES, ...data.fees };
+            localStorage.setItem(this.feesKey, JSON.stringify(this.fees));
+            this.renderPublicFees();
+          }
+          if (data.webhook !== undefined) {
+            this.discordWebhookUrl = data.webhook;
+            localStorage.setItem(this.webhookKey, data.webhook);
+          }
+          if (typeof InternaModules !== 'undefined') {
+            if (data.appointments) localStorage.setItem(InternaModules.keys.appointments, JSON.stringify(data.appointments));
+            if (data.finances) localStorage.setItem(InternaModules.keys.finances, JSON.stringify(data.finances));
+            if (data.todos) localStorage.setItem(InternaModules.keys.todos, JSON.stringify(data.todos));
+            if (data.liveStatus) localStorage.setItem(InternaModules.keys.status, data.liveStatus);
+            InternaModules.init();
+          }
+        }
+      }
+    } catch (e) {
+      // Offline / Local mode: silently use localStorage
+    }
+  }
+
+  async syncCaseToCloud(c) {
+    if (!c) return;
+    try {
+      await fetch('/api/cases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(c)
+      });
+    } catch (e) { /* Ignore offline */ }
+  }
+
+  async syncSettingToCloud(key, value) {
+    try {
+      await fetch('/api/interna', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value })
+      });
+    } catch (e) { /* Ignore offline */ }
   }
 
   updateClock() {
@@ -229,10 +295,11 @@ class KanzleiApp {
     return [];
   }
 
-  saveCases() {
+  saveCases(changedCase = null) {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.cases));
       this.updateMetrics();
+      if (changedCase) this.syncCaseToCloud(changedCase);
     } catch (e) {
       console.error('Failed to save cases:', e);
       this.showToast('Speicherfehler (LocalStorage Limit)!', 'error');
@@ -576,7 +643,7 @@ class KanzleiApp {
     };
 
     this.cases.unshift(newCase);
-    this.saveCases();
+    this.saveCases(newCase);
 
     // Trigger async Discord webhook notification (if configured)
     this.sendDiscordWebhookNotification(newCase);
@@ -649,7 +716,7 @@ class KanzleiApp {
     };
 
     this.cases.unshift(newCase);
-    this.saveCases();
+    this.saveCases(newCase);
 
     this.closeModal('modalNewCase');
     this.showToast(`Akte ${newAz} angelegt!`, 'success');
@@ -1400,7 +1467,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     if (!c) return;
 
     c[field] = value;
-    this.saveCases();
+    this.saveCases(c);
     this.showToast(`Gespeichert: ${field}`, 'info');
   }
 
@@ -1408,7 +1475,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     const c = this.cases.find(item => item.id === caseId);
     if (!c) return;
     c.status = newStatus;
-    this.saveCases();
+    this.saveCases(c);
     this.showToast(`Status auf "${newStatus}" aktualisiert!`, 'success');
   }
 
@@ -1419,6 +1486,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     if (confirm(`Achtung: Akte ${c.az} (${c.clientName}) unwiderruflich vernichten? Alle Notizen und Beweise werden gelöscht.`)) {
       this.cases = this.cases.filter(item => item.id !== caseId);
       this.saveCases();
+      fetch(`/api/cases?id=${encodeURIComponent(caseId)}`, { method: 'DELETE' }).catch(() => {});
       this.showToast(`Akte ${c.az} vernichtet.`, 'info');
       this.navigate('dashboard');
     }
@@ -1433,6 +1501,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     if (entered === 'LEEREN') {
       this.cases = [];
       this.saveCases();
+      fetch('/api/cases?id=ALL', { method: 'DELETE' }).catch(() => {});
       this.renderCasesTable();
       this.updateMetrics();
       this.showToast('Alle Akten wurden vollständig aus dem Register entfernt.', 'success');

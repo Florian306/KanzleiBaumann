@@ -44,7 +44,10 @@ const InternaModules = {
     localStorage.setItem(this.keys.status, val);
     const [text, mode] = val.split('|');
     this.updateTopbarStatusUI(text, mode);
-    if (window.app) app.showToast(`Kanzlei-Status geändert: ${text}`, 'success');
+    if (window.app) {
+      app.syncSettingToCloud('liveStatus', val);
+      app.showToast(`Kanzlei-Status geändert: ${text}`, 'success');
+    }
   },
 
   updateTopbarStatusUI(text, mode) {
@@ -91,6 +94,7 @@ const InternaModules = {
 
   saveAppointments(list) {
     localStorage.setItem(this.keys.appointments, JSON.stringify(list));
+    if (window.app) app.syncSettingToCloud('appointments', list);
     this.renderAppointments();
   },
 
@@ -162,6 +166,7 @@ const InternaModules = {
 
   saveFinances(list) {
     localStorage.setItem(this.keys.finances, JSON.stringify(list));
+    if (window.app) app.syncSettingToCloud('finances', list);
     this.renderFinances();
   },
 
@@ -244,6 +249,7 @@ const InternaModules = {
 
   saveTodos(list) {
     localStorage.setItem(this.keys.todos, JSON.stringify(list));
+    if (window.app) app.syncSettingToCloud('todos', list);
     this.renderTodos();
   },
 

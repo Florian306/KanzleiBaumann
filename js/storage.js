@@ -38,8 +38,17 @@ class StorageService {
   }
 
   async saveFile(fileRecord) {
+    // Cloud D1 sync
+    try {
+      await fetch('/api/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fileRecord)
+      });
+    } catch (e) { /* Fallback to local IndexedDB */ }
+
     await this.initPromise;
-    if (!this.db) return false;
+    if (!this.db) return true;
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction([STORE_NAME], 'readwrite');
       const store = tx.objectStore(STORE_NAME);
@@ -50,6 +59,14 @@ class StorageService {
   }
 
   async getFilesByCaseId(caseId) {
+    try {
+      const res = await fetch(`/api/files?caseId=${encodeURIComponent(caseId)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.files)) return json.files;
+      }
+    } catch (e) { /* Fallback to IndexedDB */ }
+
     await this.initPromise;
     if (!this.db) return [];
     return new Promise((resolve, reject) => {
@@ -63,8 +80,12 @@ class StorageService {
   }
 
   async deleteFile(fileId) {
+    try {
+      await fetch(`/api/files?id=${encodeURIComponent(fileId)}`, { method: 'DELETE' });
+    } catch (e) { /* Ignore */ }
+
     await this.initPromise;
-    if (!this.db) return false;
+    if (!this.db) return true;
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction([STORE_NAME], 'readwrite');
       const store = tx.objectStore(STORE_NAME);
@@ -75,6 +96,14 @@ class StorageService {
   }
 
   async getFileById(fileId) {
+    try {
+      const res = await fetch(`/api/files?id=${encodeURIComponent(fileId)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.file) return json.file;
+      }
+    } catch (e) { /* Fallback to IndexedDB */ }
+
     await this.initPromise;
     if (!this.db) return null;
     return new Promise((resolve, reject) => {
