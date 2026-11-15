@@ -202,6 +202,9 @@ const ModalComponents = {
             <div class="modal-seal">📜</div>
             <h3>Offizieller Schriftsatz zur gerichtlichen Vorlage</h3>
             <p class="modal-sub">Druckansicht mit digitalem Kanzlei-Siegel und Signatur von Dr. jur. Lars Baumann.</p>
+            <div class="print-tip-box" style="margin-top: 10px; padding: 8px 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; font-size: 0.8rem; color: #93c5fd; text-align: left;">
+              💡 <strong>Tipp für sauberes PDF:</strong> Deaktivieren Sie im Druckfenster unter <em>Weitere Einstellungen</em> die Option <strong>„Kopf- und Fußzeilen“</strong>, um Datum und URL oben/unten auszublenden.
+            </div>
           </div>
           <div id="officialDocContent"></div>
           <div class="modal-footer">

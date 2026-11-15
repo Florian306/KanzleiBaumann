@@ -2667,7 +2667,10 @@ html, body {
 /* ================= PRINT / PDF EXPORT ENGINE ================= */
 @page {
   size: A4 portrait;
-  margin: 18mm 15mm 18mm 15mm;
+  margin: 15mm 15mm 15mm 15mm;
+  /* Unterdrückt Browser-Standard-Header (Datum, Seitentitel) und -Footer (URL, Seitenzahl) */
+  margin-top: 12mm;
+  margin-bottom: 12mm;
 }
 
 @media print {
