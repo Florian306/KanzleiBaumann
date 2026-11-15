@@ -265,6 +265,7 @@ const InternaModules = {
     const caseRef = document.getElementById('finCaseRef')?.value.trim() || '';
     const amount = parseFloat(document.getElementById('finAmount').value) || 0;
     const status = document.getElementById('finStatus').value;
+    const dueDays = parseInt(document.getElementById('finDueDays')?.value ?? '14', 10);
     const breakdown = this.updateFinanceBreakdown();
 
     if (!client || breakdown.length === 0 || amount <= 0) {
@@ -275,10 +276,15 @@ const InternaModules = {
     const desc = breakdown.map(b => b.title).join(' + ');
     const list = this.getFinances();
     const invoiceNo = `RE-${new Date().getFullYear()}-${String(101 + list.length).padStart(3, '0')}`;
+    const dueDateObj = new Date();
+    dueDateObj.setDate(dueDateObj.getDate() + dueDays);
+    const dueDate = dueDays === 0 ? 'Sofort' : dueDateObj.toLocaleDateString('de-DE');
+
     list.unshift({
       id: 'fin_' + Date.now(),
       invoiceNo,
       client, clientPhone, clientAddress, caseRef, desc, breakdown, amount, status,
+      dueDays, dueDate,
       date: new Date().toLocaleDateString('de-DE')
     });
     this.saveFinances(list);
@@ -353,7 +359,7 @@ const InternaModules = {
             <span class="fin-status-pill ${item.status === 'Bezahlt' ? 'paid' : 'open'}" onclick="InternaModules.toggleFinanceStatus('${item.id}')" title="Klicken zum Umschalten">
               ${item.status === 'Bezahlt' ? '✓ Bezahlt' : '⏳ Offen (Überweisung)'}
             </span>
-            <span style="font-size:0.78rem; color:var(--text-muted);">${item.date}</span>
+            <span style="font-size:0.78rem; color:var(--text-muted);">${item.date}${item.dueDate && item.status !== 'Bezahlt' ? ` • Fällig: ${item.dueDate}` : ''}</span>
           </div>
           <div class="interna-item-title">${app.escapeHtml(item.client)} — <strong style="color:var(--accent-gold-light);">${fmt(item.amount)}</strong></div>
           ${Array.isArray(item.breakdown) && item.breakdown.length > 0 ? `
@@ -442,6 +448,7 @@ const InternaModules = {
 
         <div style="background: #f8fafc; border-left: 4px solid #b8862d; padding: 12px 16px; font-size: 0.88rem; color: #334155; margin-bottom: 28px;">
           <strong>Zahlungsmodalitäten:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei Dr. jur. Lars Baumann unter Angabe der Rechnungsnummer <strong>${invNo}</strong>. Barzahlungen sind grundsätzlich ausgeschlossen.
+          ${item.dueDate ? `<br><strong>Zahlungsfrist:</strong> ${item.dueDate === 'Sofort' ? 'Sofort fällig ohne Abzug.' : `Zahlbar innerhalb von ${item.dueDays || 14} Tagen bis zum <strong>${item.dueDate}</strong>.`}` : ''}
         </div>
 
         <div class="letterhead-footer-sign">
