@@ -26,7 +26,8 @@ async function ensureSchema(db) {
       feeVerfahrensgebuehr REAL,
       feeTerminsgebuehr REAL,
       createdAt TEXT,
-      filesCount INTEGER DEFAULT 0
+      filesCount INTEGER DEFAULT 0,
+      pleadingsHistory TEXT
     )`),
     db.prepare(`CREATE TABLE IF NOT EXISTS files (
       id TEXT PRIMARY KEY,
@@ -43,6 +44,9 @@ async function ensureSchema(db) {
       value TEXT
     )`)
   ]);
+  try {
+    await db.prepare('ALTER TABLE cases ADD COLUMN pleadingsHistory TEXT').run();
+  } catch {}
 }
 
 function jsonResponse(data, status = 200) {
@@ -59,7 +63,8 @@ export async function onRequestGet({ env }) {
   const { results } = await env.DB.prepare('SELECT * FROM cases ORDER BY createdAt DESC').all();
   const cases = (results || []).map(row => ({
     ...row,
-    markers: row.markers ? JSON.parse(row.markers) : []
+    markers: row.markers ? JSON.parse(row.markers) : [],
+    pleadingsHistory: row.pleadingsHistory ? JSON.parse(row.pleadingsHistory) : []
   }));
   return jsonResponse({ cases });
 }
@@ -75,14 +80,18 @@ export async function onRequestPost({ request, env }) {
       incidentDate, description, demands, notes, witnesses, schriftsatz,
       securityLevel, deadlineTimestamp, markers,
       feeGrundgebuehr, feeVerfahrensgebuehr, feeTerminsgebuehr,
-      createdAt, filesCount
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      createdAt, filesCount, pleadingsHistory
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     c.id, c.az, c.clientName || '', c.clientPhone || '', c.opponent || '',
     c.caseType || '', c.status || 'Eingereicht', c.incidentDate || '',
     c.description || '', c.demands || '', c.notes || '', c.witnesses || '',
     c.schriftsatz || '', c.securityLevel || 'normal', c.deadlineTimestamp || null,
     JSON.stringify(c.markers || []),
+    c.feeGrundgebuehr || 0, c.feeVerfahrensgebuehr || 0, c.feeTerminsgebuehr || 0,
+    c.createdAt || new Date().toISOString(), c.filesCount || 0,
+    JSON.stringify(c.pleadingsHistory || [])
+  ).run();
     c.feeGrundgebuehr || 0, c.feeVerfahrensgebuehr || 0, c.feeTerminsgebuehr || 0,
     c.createdAt || new Date().toISOString(), c.filesCount || 0
   ).run();
