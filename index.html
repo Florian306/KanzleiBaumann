@@ -136,67 +136,177 @@
       <!-- ================= OFFENE GEBÜHRENORDNUNG ================= -->
       <section class="content-block bg-slate" id="gebuehren">
         <div class="section-header">
-          <span class="section-eyebrow">TRANSPARENZ & HONORAR</span>
-          <h2>Amtliche Gebührenordnung Dr. jur. Lars Baumann</h2>
-          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 8px;">
-            Vergütung nach dem Rechtsanwaltsvergütungsgesetz (RVG) und individueller Honorarvereinbarung.
+          <span class="section-eyebrow">TRANSPARENZ, FAIRNESS & KLARE VERHÄLTNISSE</span>
+          <h2>⚖️ Offizielle Honorarordnung — Kanzlei Dr. jur. Lars Baumann</h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 8px; max-width: 780px; margin-left: auto; margin-right: auto;">
+            Die Inanspruchnahme unserer anwaltlichen Leistungen erfolgt auf Basis der folgenden verbindlichen Gebührenordnung. Feste Pauschalen pro Leistung nach Mandatsannahme — keine versteckten Stundensätze.
           </p>
           <div class="rule-divider"></div>
         </div>
 
-        <div class="fees-grid">
-          <div class="fee-card">
-            <div class="fee-card-top">
-              <span class="fee-category-badge">Erstkontakt</span>
-              <div class="fee-card-title">Mündliche Erstberatung</div>
-              <div class="fee-card-desc">Umfassende Prüfung der Sach- und Rechtslage, Risikobewertung sowie Formulierung erster Verteidigungsschritte.</div>
+        <div class="fees-sections-container">
+          <!-- Gruppe 1: Rechtsberatung -->
+          <div class="fee-group-block">
+            <h3 class="fee-group-title">💬 Rechtsberatung & Erstgespräch</h3>
+            <div class="fees-grid">
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Beratung</span>
+                  <div class="fee-card-title">Erstberatung (bis 30 Min.)</div>
+                  <div class="fee-card-desc">Kompakte anwaltliche Ersteinschätzung der Rechtslage, Klärung des Sachverhalts und Prüfung der Erfolgsaussichten.</div>
+                </div>
+                <div class="fee-card-price" id="fee-erstberatung">1.000 €</div>
+              </div>
+
+              <div class="fee-card highlight">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Intensiv</span>
+                  <div class="fee-card-title">Ausführliche Rechtsberatung & Aktenprüfung</div>
+                  <div class="fee-card-desc">Tiefgehende Aktenanalyse, juristische Ausarbeitung der Verteidigungsstrategie sowie Vorbereitung formeller Anträge.</div>
+                </div>
+                <div class="fee-card-price" id="fee-ausfuehrlich">2.500 €</div>
+              </div>
             </div>
-            <div class="fee-card-price" id="fee-erstberatung">190 €</div>
           </div>
 
-          <div class="fee-card highlight">
-            <div class="fee-card-top">
-              <span class="fee-category-badge">Eilbedürftig</span>
-              <div class="fee-card-title">Haftprüfung & Eilantrag</div>
-              <div class="fee-card-desc">Sofortiger anwaltlicher Beistand bei Vorführung am Amtsgericht Tiergarten (Kirchstraße 6) zur Aufhebung des Haftbefehls.</div>
+          <!-- Gruppe 2: Außergerichtliche Vertretung -->
+          <div class="fee-group-block">
+            <h3 class="fee-group-title">✉️ Außergerichtliche Vertretung & Schriftverkehr</h3>
+            <div class="fees-grid">
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Behörden</span>
+                  <div class="fee-card-title">Schriftverkehr Behörden / Polizei</div>
+                  <div class="fee-card-desc">Offizielle Korrespondenz, Stellungnahmen, Schutzschriften und Akteneinsichtsgesuche bei Polizei und Staatsanwaltschaft.</div>
+                </div>
+                <div class="fee-card-price" id="fee-schriftverkehr">4.000 €</div>
+              </div>
+
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Einigung</span>
+                  <div class="fee-card-title">Außergerichtlicher Vergleich & Streitbeilegung</div>
+                  <div class="fee-card-desc">Verhandlungsführung zur Vermeidung eines Gerichtsverfahrens, rechtssichere Einigungsverträge und Schadensregulierung.</div>
+                </div>
+                <div class="fee-card-price" id="fee-vergleich">6.000 €</div>
+              </div>
             </div>
-            <div class="fee-card-price" id="fee-haftpruefung">950 €</div>
           </div>
 
-          <div class="fee-card">
-            <div class="fee-card-top">
-              <span class="fee-category-badge">Strafrecht</span>
-              <div class="fee-card-title">Strafverteidigung Ermittlung</div>
-              <div class="fee-card-desc">Akteneinsicht bei der Staatsanwaltschaft Berlin, Schutzschrift und Antrag auf Verfahrenseinstellung nach § 170 Abs. 2 StPO.</div>
+          <!-- Gruppe 3: Vertragsgestaltung & Dokumentenprüfung -->
+          <div class="fee-group-block">
+            <h3 class="fee-group-title">📑 Vertragsgestaltung & Dokumentenprüfung</h3>
+            <div class="fees-grid">
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Prüfung</span>
+                  <div class="fee-card-title">Arbeits- & Dienstverträge</div>
+                  <div class="fee-card-desc">Prüfung und Anpassung bestehender Vertragswerke pro Dokument / Entwurf auf rechtliche Fallstricke und Konformität.</div>
+                </div>
+                <div class="fee-card-price" id="fee-vertragspruefung">3.500 €</div>
+              </div>
+
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Erstellung</span>
+                  <div class="fee-card-title">Maßgeschneiderte Vertragswerke</div>
+                  <div class="fee-card-desc">Individuelle Neuerstellung exklusiver Verträge mit lückenlosem Haftungsschutz, Klauselsicherheit und Kündigungsregelungen.</div>
+                </div>
+                <div class="fee-card-price" id="fee-vertragserstellung">5.000 €</div>
+              </div>
             </div>
-            <div class="fee-card-price" id="fee-strafverteidigung">750 €</div>
           </div>
 
-          <div class="fee-card">
-            <div class="fee-card-top">
-              <span class="fee-category-badge">Polizeirecht</span>
-              <div class="fee-card-title">Dienstaufsichtsbeschwerde</div>
-              <div class="fee-card-desc">Vertretung gegen willkürliche Maßnahmen der Polizei Berlin, Beschlagnahmen oder rechtswidrigen Gewahrsam.</div>
+          <!-- Gruppe 4: Straf- & Zivilmandat -->
+          <div class="fee-group-block">
+            <h3 class="fee-group-title">🛡️ Straf- & Zivilmandat (Verteidigung)</h3>
+            <div class="fees-grid">
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Gewahrsam</span>
+                  <div class="fee-card-title">Vernehmung / Polizeigewahrsam</div>
+                  <div class="fee-card-desc">Sofortiger anwaltlicher Beistand bei polizeilichen Vernehmungen, Vorführungen und Schutz vor unzulässigen Befragungen.</div>
+                </div>
+                <div class="fee-card-price" id="fee-vernehmung">7.500 €</div>
+              </div>
+
+              <div class="fee-card highlight">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Vollmandat</span>
+                  <div class="fee-card-title">Komplette Strafverteidigung</div>
+                  <div class="fee-card-desc">Vollumfängliche Vertretung im Ermittlungs- und Zwischenverfahren inklusive Akteneinsicht und Einstellungsantrag gem. § 170 StPO.</div>
+                </div>
+                <div class="fee-card-price" id="fee-strafverteidigung">12.000 €</div>
+              </div>
+
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Zivilrecht</span>
+                  <div class="fee-card-title">Zivilrechtliche Klagevertretung</div>
+                  <div class="fee-card-desc">Geltendmachung oder Abwehr von Schadensersatz-, Schmerzensgeld- und Vermögensansprüchen vor Gericht.</div>
+                </div>
+                <div class="fee-card-price" id="fee-zivilklage">10.000 €</div>
+              </div>
             </div>
-            <div class="fee-card-price" id="fee-polizeirecht">550 €</div>
           </div>
 
-          <div class="fee-card">
-            <div class="fee-card-top">
-              <span class="fee-category-badge">Zivilrecht</span>
-              <div class="fee-card-title">Zivilklage & Schmerzensgeld</div>
-              <div class="fee-card-desc">Schadensersatzforderungen nach Unfällen oder Amtspflichtverletzungen vor dem Landgericht Berlin.</div>
+          <!-- Gruppe 5: Gericht & Nebenkosten -->
+          <div class="fee-group-block">
+            <h3 class="fee-group-title">🏛️ Gerichtliche Hauptverhandlung & Nebenkosten</h3>
+            <div class="fees-grid">
+              <div class="fee-card highlight">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Prozesstag</span>
+                  <div class="fee-card-title">Termingebühr Hauptverhandlung</div>
+                  <div class="fee-card-desc">Gerichtssaal-Vertretung durch Dr. jur. Lars Baumann (fällig pro angetretenem Verhandlungstag am AG Tiergarten / LG Berlin).</div>
+                </div>
+                <div class="fee-card-price" id="fee-hauptverhandlung">15.000 € / Tag</div>
+              </div>
+
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Pauschale</span>
+                  <div class="fee-card-title">Fahrt- & Einsatzpauschale</div>
+                  <div class="fee-card-desc">Pauschale für Vor-Ort-Termine, Revierbesuche in Berliner Polizeiabschnitten und Ortstermine.</div>
+                </div>
+                <div class="fee-card-price" id="fee-fahrtpauschale">1.500 €</div>
+              </div>
+
+              <div class="fee-card">
+                <div class="fee-card-top">
+                  <span class="fee-category-badge">Einsatz Eil</span>
+                  <div class="fee-card-title">Dringlichkeitszuschlag</div>
+                  <div class="fee-card-desc">Für Nachteinsätze und Sofort-Vertretungen mit weniger als 2 Stunden Vorlaufzeit (auf den jeweiligen Grundpreis).</div>
+                </div>
+                <div class="fee-card-price" id="fee-dringlichkeitszuschlag">+50 %</div>
+              </div>
             </div>
-            <div class="fee-card-price" id="fee-zivilklage">800 €</div>
           </div>
 
-          <div class="fee-card">
-            <div class="fee-card-top">
-              <span class="fee-category-badge">Individuell</span>
-              <div class="fee-card-title">Zeithonorar (Komplexmandate)</div>
-              <div class="fee-card-desc">Abrechnung nach Zeitaufwand für aufwendige Wirtschaftsstrafsachen, Gutachten und Verhandlungen.</div>
+          <!-- Vorschuss & Zahlungsmodalitäten Kasten -->
+          <div class="fee-policy-card">
+            <div class="fee-policy-header">
+              <span class="fee-policy-icon">📋</span>
+              <div>
+                <h4>Vorschuss & Zahlungsmodalitäten</h4>
+                <p>Verbindliche Richtlinien für die Mandatsabwicklung</p>
+              </div>
             </div>
-            <div class="fee-card-price" id="fee-stundensatz">280 € / Std.</div>
+            <div class="fee-policy-grid">
+              <div class="policy-item">
+                <strong>Sonderfälle:</strong> Nicht explizit aufgeführte Leistungen werden unkompliziert im Rahmen einer erweiterten Rechtsberatung oder nach individuellem Aufwand berechnet.
+              </div>
+              <div class="policy-item">
+                <strong>Vorauszahlung / Vorschuss:</strong> Bei bestimmten Mandaten (insbesondere nächtlichen Einsätzen oder vor Gerichtsverhandlungen) kann eine Vorauszahlung vor Tätigkeitsbeginn erhoben werden.
+              </div>
+              <div class="policy-item full">
+                <strong>Zahlungsmittel:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei. <u>Barzahlungen sind grundsätzlich ausgeschlossen.</u>
+              </div>
+            </div>
+            <div class="fee-policy-footer">
+              <span>Hinweis: Abrechnung erfolgt transparent als feste Pauschale pro Leistung nach Mandatsannahme. Keine versteckten Stundensätze.</span>
+              <strong style="color: var(--accent-gold-light);">Kanzleiinhaber Dr. jur. Lars Baumann</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -536,28 +646,52 @@
       <form onsubmit="app.handleSaveFees(event)">
         <div class="form-grid">
           <div class="input-group">
-            <label for="inputFeeErstberatung">Mündliche Erstberatung (€) *</label>
+            <label for="inputFeeErstberatung">Erstberatung (bis 30 Min.) (€) *</label>
             <input type="number" id="inputFeeErstberatung" required min="0">
           </div>
           <div class="input-group">
-            <label for="inputFeeHaftpruefung">Haftprüfung & Eilantrag (€) *</label>
-            <input type="number" id="inputFeeHaftpruefung" required min="0">
+            <label for="inputFeeAusfuehrlich">Ausführliche Beratung & Aktenprüfung (€) *</label>
+            <input type="number" id="inputFeeAusfuehrlich" required min="0">
           </div>
           <div class="input-group">
-            <label for="inputFeeStrafverteidigung">Strafverteidigung Ermittlung (€) *</label>
+            <label for="inputFeeSchriftverkehr">Schriftverkehr Behörden / Polizei (€) *</label>
+            <input type="number" id="inputFeeSchriftverkehr" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeVergleich">Vergleich & Streitbeilegung (€) *</label>
+            <input type="number" id="inputFeeVergleich" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeVertragspruefung">Prüfung Arbeits- & Dienstverträge (€) *</label>
+            <input type="number" id="inputFeeVertragspruefung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeVertragserstellung">Maßgeschneiderte Vertragswerke (€) *</label>
+            <input type="number" id="inputFeeVertragserstellung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeVernehmung">Vernehmung / Polizeigewahrsam (€) *</label>
+            <input type="number" id="inputFeeVernehmung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeStrafverteidigung">Komplette Strafverteidigung (€) *</label>
             <input type="number" id="inputFeeStrafverteidigung" required min="0">
           </div>
           <div class="input-group">
-            <label for="inputFeePolizeirecht">Dienstaufsichtsbeschwerde (€) *</label>
-            <input type="number" id="inputFeePolizeirecht" required min="0">
-          </div>
-          <div class="input-group">
-            <label for="inputFeeZivilklage">Zivilklage & Schmerzensgeld (€) *</label>
+            <label for="inputFeeZivilklage">Zivilrechtliche Klagevertretung (€) *</label>
             <input type="number" id="inputFeeZivilklage" required min="0">
           </div>
           <div class="input-group">
-            <label for="inputFeeStundensatz">Zeithonorar pro Stunde (€) *</label>
-            <input type="number" id="inputFeeStundensatz" required min="0">
+            <label for="inputFeeHauptverhandlung">Termingebühr Hauptverhandlung (€/Tag) *</label>
+            <input type="number" id="inputFeeHauptverhandlung" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeFahrtpauschale">Fahrt- & Einsatzpauschale (€) *</label>
+            <input type="number" id="inputFeeFahrtpauschale" required min="0">
+          </div>
+          <div class="input-group">
+            <label for="inputFeeDringlichkeitszuschlag">Dringlichkeitszuschlag (% auf Grundpreis) *</label>
+            <input type="number" id="inputFeeDringlichkeitszuschlag" required min="0">
           </div>
         </div>
         <div class="modal-footer">

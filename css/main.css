@@ -476,17 +476,38 @@ html, body {
 }
 
 /* ================= GEBÜHREN-ORDNUNG (ÖFFENTLICH) ================= */
+.fees-sections-container {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.fee-group-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fee-group-title {
+  font-family: var(--font-heading);
+  font-size: 1.28rem;
+  color: var(--text-main);
+  padding-left: 12px;
+  border-left: 3px solid var(--accent-gold);
+  margin-bottom: 4px;
+}
+
 .fees-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 20px;
 }
 
 .fee-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 28px;
+  padding: 24px 26px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -505,7 +526,7 @@ html, body {
 }
 
 .fee-card-top {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .fee-category-badge {
@@ -517,12 +538,12 @@ html, body {
   border: 1px solid rgba(212, 175, 55, 0.3);
   padding: 3px 8px;
   border-radius: 4px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   text-transform: uppercase;
 }
 
 .fee-card-title {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 8px;
@@ -540,7 +561,7 @@ html, body {
   font-weight: 700;
   color: var(--accent-gold-light);
   border-top: 1px solid var(--border-color);
-  padding-top: 16px;
+  padding-top: 14px;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -551,6 +572,85 @@ html, body {
   font-family: var(--font-body);
   color: var(--text-muted);
   font-weight: 400;
+}
+
+/* Vorschuss & Zahlungsmodalitäten Kasten */
+.fee-policy-card {
+  background: linear-gradient(135deg, rgba(20, 28, 44, 0.95), rgba(15, 22, 35, 0.98));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-md);
+  padding: 28px 32px;
+  margin-top: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.fee-policy-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fee-policy-icon {
+  font-size: 1.8rem;
+}
+
+.fee-policy-header h4 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.fee-policy-header p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+.fee-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.policy-item {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+}
+
+.policy-item.full {
+  grid-column: 1 / -1;
+}
+
+.policy-item strong {
+  color: var(--accent-gold-light);
+}
+
+.policy-item u {
+  text-decoration-color: #f87171;
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.fee-policy-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
 }
 
 /* ================= CTA BANNER (HIGH-END PRO EDITION) ================= */

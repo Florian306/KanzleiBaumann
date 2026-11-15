@@ -48,12 +48,18 @@ class KanzleiApp {
   // --- GEBÜHRENORDNUNG (ÖFFENTLICH & BEARBEITBAR) ---
   loadFees() {
     const defaultFees = {
-      erstberatung: 190,
-      strafverteidigung: 750,
-      haftpruefung: 950,
-      polizeirecht: 550,
-      zivilklage: 800,
-      stundensatz: 280
+      erstberatung: 1000,
+      ausfuehrlich: 2500,
+      schriftverkehr: 4000,
+      vergleich: 6000,
+      vertragspruefung: 3500,
+      vertragserstellung: 5000,
+      vernehmung: 7500,
+      strafverteidigung: 12000,
+      zivilklage: 10000,
+      hauptverhandlung: 15000,
+      fahrtpauschale: 1500,
+      dringlichkeitszuschlag: 50
     };
     try {
       const raw = localStorage.getItem(this.feesKey);
@@ -74,19 +80,31 @@ class KanzleiApp {
   renderPublicFees() {
     const formatEuro = (num) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(num);
 
-    const f1 = document.getElementById('fee-erstberatung');
-    const f2 = document.getElementById('fee-strafverteidigung');
-    const f3 = document.getElementById('fee-haftpruefung');
-    const f4 = document.getElementById('fee-polizeirecht');
-    const f5 = document.getElementById('fee-zivilklage');
-    const f6 = document.getElementById('fee-stundensatz');
+    const fErst = document.getElementById('fee-erstberatung');
+    const fAusf = document.getElementById('fee-ausfuehrlich');
+    const fSchrift = document.getElementById('fee-schriftverkehr');
+    const fVergleich = document.getElementById('fee-vergleich');
+    const fVertragPruef = document.getElementById('fee-vertragspruefung');
+    const fVertragErst = document.getElementById('fee-vertragserstellung');
+    const fVern = document.getElementById('fee-vernehmung');
+    const fStraf = document.getElementById('fee-strafverteidigung');
+    const fZivil = document.getElementById('fee-zivilklage');
+    const fHaupt = document.getElementById('fee-hauptverhandlung');
+    const fFahrt = document.getElementById('fee-fahrtpauschale');
+    const fDring = document.getElementById('fee-dringlichkeitszuschlag');
 
-    if (f1) f1.textContent = formatEuro(this.fees.erstberatung);
-    if (f2) f2.textContent = formatEuro(this.fees.strafverteidigung);
-    if (f3) f3.textContent = formatEuro(this.fees.haftpruefung);
-    if (f4) f4.textContent = formatEuro(this.fees.polizeirecht);
-    if (f5) f5.textContent = formatEuro(this.fees.zivilklage);
-    if (f6) f6.textContent = `${formatEuro(this.fees.stundensatz)} / Std.`;
+    if (fErst) fErst.textContent = formatEuro(this.fees.erstberatung);
+    if (fAusf) fAusf.textContent = formatEuro(this.fees.ausfuehrlich);
+    if (fSchrift) fSchrift.textContent = formatEuro(this.fees.schriftverkehr);
+    if (fVergleich) fVergleich.textContent = formatEuro(this.fees.vergleich);
+    if (fVertragPruef) fVertragPruef.textContent = formatEuro(this.fees.vertragspruefung);
+    if (fVertragErst) fVertragErst.textContent = formatEuro(this.fees.vertragserstellung);
+    if (fVern) fVern.textContent = formatEuro(this.fees.vernehmung);
+    if (fStraf) fStraf.textContent = formatEuro(this.fees.strafverteidigung);
+    if (fZivil) fZivil.textContent = formatEuro(this.fees.zivilklage);
+    if (fHaupt) fHaupt.textContent = `${formatEuro(this.fees.hauptverhandlung)} / Tag`;
+    if (fFahrt) fFahrt.textContent = formatEuro(this.fees.fahrtpauschale);
+    if (fDring) fDring.textContent = `+${this.fees.dringlichkeitszuschlag} %`;
   }
 
   openFeeSettingsModal() {
@@ -94,12 +112,18 @@ class KanzleiApp {
       this.openModal('modalPassword');
       return;
     }
-    document.getElementById('inputFeeErstberatung').value = this.fees.erstberatung;
-    document.getElementById('inputFeeStrafverteidigung').value = this.fees.strafverteidigung;
-    document.getElementById('inputFeeHaftpruefung').value = this.fees.haftpruefung;
-    document.getElementById('inputFeePolizeirecht').value = this.fees.polizeirecht;
-    document.getElementById('inputFeeZivilklage').value = this.fees.zivilklage;
-    document.getElementById('inputFeeStundensatz').value = this.fees.stundensatz;
+    document.getElementById('inputFeeErstberatung').value = this.fees.erstberatung || 1000;
+    document.getElementById('inputFeeAusfuehrlich').value = this.fees.ausfuehrlich || 2500;
+    document.getElementById('inputFeeSchriftverkehr').value = this.fees.schriftverkehr || 4000;
+    document.getElementById('inputFeeVergleich').value = this.fees.vergleich || 6000;
+    document.getElementById('inputFeeVertragspruefung').value = this.fees.vertragspruefung || 3500;
+    document.getElementById('inputFeeVertragserstellung').value = this.fees.vertragserstellung || 5000;
+    document.getElementById('inputFeeVernehmung').value = this.fees.vernehmung || 7500;
+    document.getElementById('inputFeeStrafverteidigung').value = this.fees.strafverteidigung || 12000;
+    document.getElementById('inputFeeZivilklage').value = this.fees.zivilklage || 10000;
+    document.getElementById('inputFeeHauptverhandlung').value = this.fees.hauptverhandlung || 15000;
+    document.getElementById('inputFeeFahrtpauschale').value = this.fees.fahrtpauschale || 1500;
+    document.getElementById('inputFeeDringlichkeitszuschlag').value = this.fees.dringlichkeitszuschlag || 50;
 
     this.openModal('modalEditFees');
   }
@@ -107,12 +131,18 @@ class KanzleiApp {
   handleSaveFees(e) {
     e.preventDefault();
     const updated = {
-      erstberatung: parseFloat(document.getElementById('inputFeeErstberatung').value) || 190,
-      strafverteidigung: parseFloat(document.getElementById('inputFeeStrafverteidigung').value) || 750,
-      haftpruefung: parseFloat(document.getElementById('inputFeeHaftpruefung').value) || 950,
-      polizeirecht: parseFloat(document.getElementById('inputFeePolizeirecht').value) || 550,
-      zivilklage: parseFloat(document.getElementById('inputFeeZivilklage').value) || 800,
-      stundensatz: parseFloat(document.getElementById('inputFeeStundensatz').value) || 280
+      erstberatung: parseFloat(document.getElementById('inputFeeErstberatung').value) || 1000,
+      ausfuehrlich: parseFloat(document.getElementById('inputFeeAusfuehrlich').value) || 2500,
+      schriftverkehr: parseFloat(document.getElementById('inputFeeSchriftverkehr').value) || 4000,
+      vergleich: parseFloat(document.getElementById('inputFeeVergleich').value) || 6000,
+      vertragspruefung: parseFloat(document.getElementById('inputFeeVertragspruefung').value) || 3500,
+      vertragserstellung: parseFloat(document.getElementById('inputFeeVertragserstellung').value) || 5000,
+      vernehmung: parseFloat(document.getElementById('inputFeeVernehmung').value) || 7500,
+      strafverteidigung: parseFloat(document.getElementById('inputFeeStrafverteidigung').value) || 12000,
+      zivilklage: parseFloat(document.getElementById('inputFeeZivilklage').value) || 10000,
+      hauptverhandlung: parseFloat(document.getElementById('inputFeeHauptverhandlung').value) || 15000,
+      fahrtpauschale: parseFloat(document.getElementById('inputFeeFahrtpauschale').value) || 1500,
+      dringlichkeitszuschlag: parseFloat(document.getElementById('inputFeeDringlichkeitszuschlag').value) || 50
     };
     this.saveFees(updated);
     this.closeModal('modalEditFees');
