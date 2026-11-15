@@ -104,9 +104,6 @@ export async function onRequestPost({ request, env }) {
       .bind(c.id, JSON.stringify(c.pleadingsHistory))
       .run();
   }
-    c.feeGrundgebuehr || 0, c.feeVerfahrensgebuehr || 0, c.feeTerminsgebuehr || 0,
-    c.createdAt || new Date().toISOString(), c.filesCount || 0
-  ).run();
 
   return jsonResponse({ ok: true, id: c.id });
 }
