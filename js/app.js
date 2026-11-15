@@ -36,6 +36,9 @@ class KanzleiApp {
     this.renderCasesTable();
     this.updateMetrics();
     this.updateAzPreview();
+    if (typeof InternaModules !== 'undefined') {
+      InternaModules.init();
+    }
   }
 
   updateClock() {

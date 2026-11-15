@@ -19,7 +19,7 @@
       </div>
       <div class="topbar-right">
         <span class="system-time" id="systemTime">BERLIN ONLINE</span>
-        <span class="status-indicator live"><span class="dot"></span> Mandatsprüfung Aktiv</span>
+        <span class="status-indicator live" id="topbarLiveStatus"><span class="dot"></span> Mandatsprüfung Aktiv</span>
       </div>
     </div>
   </header>
@@ -441,12 +441,22 @@
             <p class="dash-subtitle">Zentrales Fallregister & Beweismittel-Verwaltung Berlin</p>
           </div>
           <div class="dash-actions">
+            <select id="dashLiveStatusSelect" class="dash-status-select" onchange="InternaModules.changeLiveStatus(this.value)" title="Öffentlichen Kanzlei-Status umschalten">
+              <option value="Mandatsprüfung Aktiv|live">🟢 Mandatsprüfung Aktiv</option>
+              <option value="Im Gerichtstermin (AG Tiergarten)|busy">🟡 Im Gerichtstermin (AG Tiergarten)</option>
+              <option value="Nur Notfall-Einsätze|urgent">🔴 Nur Notfall-Einsätze</option>
+              <option value="Kanzlei geschlossen|offline">⚫ Kanzlei geschlossen</option>
+            </select>
             <button class="btn btn-secondary" onclick="app.openFeeSettingsModal()">
               <span>💶 Gebühren anpassen</span>
             </button>
             <button class="btn btn-secondary" onclick="app.exportAllDatabase()">
-              <span>💾 DB Backup Export</span>
+              <span>💾 DB Export</span>
             </button>
+            <button class="btn btn-secondary" onclick="InternaModules.triggerDbImport()">
+              <span>📥 DB Import</span>
+            </button>
+            <input type="file" id="dbImportFileInput" accept=".json" style="display: none;" onchange="InternaModules.handleDbImport(event)">
             <button class="btn btn-danger-outline" onclick="app.clearAllCasesPrompt()" title="Alle Akten leeren">
               <span>🗑️ Akten leeren</span>
             </button>
@@ -458,6 +468,17 @@
             </button>
           </div>
         </div>
+
+        <!-- Dashboard Sub-Navigation Tabs -->
+        <div class="dash-tabs-nav">
+          <button class="dash-tab-btn active" onclick="InternaModules.switchDashboardTab('akten', this)">📁 Aktenregister</button>
+          <button class="dash-tab-btn" onclick="InternaModules.switchDashboardTab('termine', this)">📅 Termine & Fristen</button>
+          <button class="dash-tab-btn" onclick="InternaModules.switchDashboardTab('finanzen', this)">💰 Finanzen & Honorare</button>
+          <button class="dash-tab-btn" onclick="InternaModules.switchDashboardTab('todos', this)">📝 Kanzlei-Notizen & To-Do</button>
+        </div>
+
+        <!-- TAB 1: AKTENREGISTER -->
+        <div id="dash-tab-akten" class="dash-tab-panel active">
 
         <!-- Metrics -->
         <div class="metrics-row">
@@ -552,6 +573,120 @@
             </div>
           </div>
         </div>
+        </div><!-- Ende TAB 1: AKTENREGISTER -->
+
+        <!-- TAB 2: TERMINE & FRISTEN -->
+        <div id="dash-tab-termine" class="dash-tab-panel">
+          <div class="interna-two-col">
+            <div class="interna-form-card">
+              <h3>📅 Neuen Gerichtstermin / Frist anlegen</h3>
+              <form onsubmit="InternaModules.addAppointment(event)">
+                <div class="input-group">
+                  <label>Bezeichnung / Termin *</label>
+                  <input type="text" id="appTitle" required placeholder="z. B. Haftprüfungstermin oder Hauptverhandlung">
+                </div>
+                <div class="form-grid" style="margin-top: 12px;">
+                  <div class="input-group">
+                    <label>Datum *</label>
+                    <input type="date" id="appDate" required>
+                  </div>
+                  <div class="input-group">
+                    <label>Uhrzeit</label>
+                    <input type="time" id="appTime" value="09:00">
+                  </div>
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                  <label>Ort / Gericht / Saal</label>
+                  <input type="text" id="appLocation" placeholder="z. B. AG Tiergarten, Turmstraße 91, Saal 204">
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                  <label>Aktenzeichen (Optional)</label>
+                  <input type="text" id="appAz" placeholder="z. B. 104/26 StR">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">+ Termin speichern</button>
+              </form>
+            </div>
+            <div class="interna-list-card">
+              <h3>Anstehende Termine & Fristen (Berlin)</h3>
+              <div id="appointmentsListContainer" class="interna-items-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: FINANZEN & HONORARE -->
+        <div id="dash-tab-finanzen" class="dash-tab-panel">
+          <div class="metrics-row" style="margin-bottom: 22px;">
+            <div class="metric-card metric-green">
+              <div class="metric-val" id="finTotalPaid">0 €</div>
+              <div class="metric-label">Bezahlte Honorare (Überweisung)</div>
+            </div>
+            <div class="metric-card metric-orange">
+              <div class="metric-val" id="finTotalOpen">0 €</div>
+              <div class="metric-label">Offene Rechnungen / Vorschüsse</div>
+            </div>
+          </div>
+          <div class="interna-two-col">
+            <div class="interna-form-card">
+              <h3>💰 Honorar / Vorschuss verbuchen</h3>
+              <form onsubmit="InternaModules.addFinanceEntry(event)">
+                <div class="input-group">
+                  <label>Mandant / Rechnungsempfänger *</label>
+                  <input type="text" id="finClient" required placeholder="z. B. Maximilian Kraft">
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                  <label>Leistung (gem. Honorarordnung) *</label>
+                  <input type="text" id="finDesc" required placeholder="z. B. Komplette Strafverteidigung + Fahrtpauschale">
+                </div>
+                <div class="form-grid" style="margin-top: 12px;">
+                  <div class="input-group">
+                    <label>Betrag (€) *</label>
+                    <input type="number" id="finAmount" required min="1" placeholder="12000">
+                  </div>
+                  <div class="input-group">
+                    <label>Zahlungsstatus</label>
+                    <select id="finStatus">
+                      <option value="Offen">Offen (Überweisung)</option>
+                      <option value="Bezahlt">Bezahlt</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">+ Honorar verbuchen</button>
+              </form>
+            </div>
+            <div class="interna-list-card">
+              <h3>Kanzlei-Rechnungsbuch</h3>
+              <div id="financesListContainer" class="interna-items-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: KANZLEI-NOTIZEN & TO-DO -->
+        <div id="dash-tab-todos" class="dash-tab-panel">
+          <div class="interna-two-col">
+            <div class="interna-form-card">
+              <h3>📝 Neue Kanzlei-Aufgabe</h3>
+              <form onsubmit="InternaModules.addTodo(event)">
+                <div class="input-group">
+                  <label>Aufgabe / Notiz *</label>
+                  <input type="text" id="todoText" required placeholder="z. B. Rückruf an Mandant Kraft, Vollmacht nachreichen...">
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                  <label>Priorität</label>
+                  <select id="todoPrio">
+                    <option value="Normal">Normal</option>
+                    <option value="Hoch">Hoch</option>
+                    <option value="Eilig">Eilig</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">+ Aufgabe hinzufügen</button>
+              </form>
+            </div>
+            <div class="interna-list-card">
+              <h3>Offene Aufgaben & Kanzlei-Board</h3>
+              <div id="todosListContainer" class="interna-items-list"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -575,6 +710,7 @@
   <script src="js/modals.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/templates.js"></script>
+  <script src="js/interna-modules.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
