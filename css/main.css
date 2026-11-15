@@ -3065,6 +3065,23 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+.redacted-bar {
+  display: inline-block;
+  background: #090a0f;
+  color: #090a0f;
+  border-radius: 3px;
+  padding: 0 6px;
+  user-select: none;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.redacted-field {
+  color: transparent !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  user-select: none;
+}
+
 /* ================= PRINT / PDF EXPORT ENGINE ================= */
 @page {
   size: A4 portrait;

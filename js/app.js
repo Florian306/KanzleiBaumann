@@ -867,10 +867,11 @@ class KanzleiApp {
           </div>
         </td>
         <td>
-          <strong style="color: var(--text-main);">${this.escapeHtml(c.clientName)}</strong><br>
-          <small style="color: var(--text-dark);">${this.escapeHtml(c.clientPhone)}</small>
+          ${c.securityLevel === 'vs'
+            ? `<span class="redacted-bar" title="Verschlusssache (VS § 203 StGB)">██████████</span><br><small><span class="redacted-bar">████████</span></small>`
+            : `<strong style="color: var(--text-main);">${this.escapeHtml(c.clientName)}</strong><br><small style="color: var(--text-dark);">${this.escapeHtml(c.clientPhone)}</small>`}
         </td>
-        <td>${this.escapeHtml(c.opponent)}</td>
+        <td>${c.securityLevel === 'vs' ? `<span class="redacted-bar" title="Verschlusssache">████████</span>` : this.escapeHtml(c.opponent)}</td>
         <td><span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">${c.caseType}</span></td>
         <td><span style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-dark);">${dateStr}</span></td>
         <td>
@@ -989,12 +990,17 @@ class KanzleiApp {
           <div class="case-header-meta">
             <div class="case-header-client">${this.escapeHtml(c.clientName)} <span style="font-weight: 400; font-size: 0.95rem; color: var(--text-muted);">vs. ${this.escapeHtml(c.opponent)}</span></div>
             <div class="case-header-sub">
-              Erfasst am: ${new Date(c.createdAt).toLocaleDateString('de-DE')} • Rechtsgebiet: ${c.caseType} • Tel: ${this.escapeHtml(c.clientPhone)}
+              Erfasst am: ${new Date(c.createdAt).toLocaleDateString('de-DE')} • Rechtsgebiet: ${c.caseType} • Tel: ${(c.securityLevel === 'vs' && !(this.unredactedCases && this.unredactedCases.has(c.id))) ? '<span class="redacted-bar">████████</span>' : this.escapeHtml(c.clientPhone)}
             </div>
           </div>
         </div>
 
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          ${c.securityLevel === 'vs' ? `
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.toggleRedaction('${c.id}')" style="border-color: rgba(239, 68, 68, 0.45);">
+              ${(this.unredactedCases && this.unredactedCases.has(c.id)) ? '🔒 Schwärzen' : '👁️ Entschwärzen'}
+            </button>
+          ` : ''}
           <div class="case-status-control">
             <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Status:</label>
             <select onchange="app.updateCaseStatus('${c.id}', this.value)">
@@ -1872,6 +1878,16 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
     await this.syncSettingToCloud('pleadings_' + caseId, c.pleadingsHistory);
     this.saveCases(c);
     this.openCaseDetail(caseId, 'schriftsatz');
+  }
+
+  toggleRedaction(caseId) {
+    if (!this.unredactedCases) this.unredactedCases = new Set();
+    if (this.unredactedCases.has(caseId)) {
+      this.unredactedCases.delete(caseId);
+    } else {
+      this.unredactedCases.add(caseId);
+    }
+    this.openCaseDetail(caseId);
   }
 
   exportAllDatabase() {
