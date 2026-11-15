@@ -325,7 +325,25 @@ const InternaModules = {
       return;
     }
 
-    container.innerHTML = list.map((item, idx) => {
+    const searchQuery = (document.getElementById('finSearchInput')?.value || '').trim().toLowerCase();
+    const statusFilter = document.getElementById('finStatusFilter')?.value || 'all';
+
+    const filtered = list.filter((item, idx) => {
+      if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+      if (searchQuery) {
+        const invNo = (item.invoiceNo || `RE-2026-${String(101 + idx).padStart(3, '0')}`).toLowerCase();
+        const hay = `${item.client} ${invNo} ${item.caseRef || ''} ${item.desc || ''}`.toLowerCase();
+        if (!hay.includes(searchQuery)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="interna-empty">🔍 Keine Rechnungen passend zum Filter gefunden.</div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map((item, idx) => {
       const invNo = item.invoiceNo || `RE-2026-${String(101 + idx).padStart(3, '0')}`;
       return `
       <div class="interna-item-card fin-invoice-card">

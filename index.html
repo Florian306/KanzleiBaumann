@@ -628,7 +628,15 @@
           <div class="interna-list-card">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
               <h3 style="margin: 0; border: none; padding: 0;">Kanzlei-Rechnungsbuch</h3>
-              <button type="button" class="btn btn-primary" onclick="app.openModal('modalNewInvoice')">+ Neue Rechnung erstellen</button>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="finSearchInput" oninput="InternaModules.renderFinances()" placeholder="🔍 Mandant, RE-Nr., AZ..." style="padding: 8px 12px; font-size: 0.85rem; width: 210px;">
+                <select id="finStatusFilter" onchange="InternaModules.renderFinances()" style="padding: 8px 12px; font-size: 0.85rem; width: auto;">
+                  <option value="all">Alle Status</option>
+                  <option value="Offen">⏳ Offen</option>
+                  <option value="Bezahlt">✓ Bezahlt</option>
+                </select>
+                <button type="button" class="btn btn-primary" onclick="app.openModal('modalNewInvoice')">+ Neue Rechnung erstellen</button>
+              </div>
             </div>
             <div id="financesListContainer" class="interna-items-list"></div>
           </div>
