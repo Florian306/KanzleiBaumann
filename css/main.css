@@ -877,6 +877,134 @@ html, body {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* ================= PUBLIC CASE UPLOAD DROPZONE ================= */
+.pub-upload-dropzone {
+  border: 2px dashed rgba(212, 175, 55, 0.4);
+  background: rgba(19, 25, 38, 0.6);
+  border-radius: var(--radius-md);
+  padding: 26px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.pub-upload-dropzone:hover,
+.pub-upload-dropzone.dragover {
+  border-color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.08);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+}
+
+.pub-dropzone-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.pub-dropzone-title {
+  font-family: var(--font-heading);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.pub-dropzone-desc {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.pub-dropzone-types {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pub-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: #cbd5e1;
+}
+
+.pub-files-preview-list {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pub-files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-gold-light);
+}
+
+.pub-files-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pub-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  color: var(--text-main);
+  max-width: 100%;
+}
+
+.pub-chip-icon {
+  font-size: 1rem;
+}
+
+.pub-chip-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-chip-size {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+.pub-chip-remove {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.pub-chip-remove:hover {
+  transform: scale(1.2);
+  color: #ef4444;
+}
+
 /* ================= STATUS TRACKER VIEW ================= */
 .tracker-box {
   max-width: 800px;

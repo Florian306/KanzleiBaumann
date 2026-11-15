@@ -318,6 +318,29 @@
               <input type="text" id="pubDemands" placeholder="z. B. Entlassung aus Gewahrsam, Akteneinsicht, Schadenersatz 15.000 €">
             </div>
 
+            <!-- Beweismittel-Upload (Bilder & Videos) -->
+            <div class="input-group full-width">
+              <label>Beweismittel & Dokumente (Optional)</label>
+              <div class="pub-upload-dropzone" id="pubDropzone"
+                   ondragover="app.handlePubDragOver(event)"
+                   ondragleave="app.handlePubDragLeave(event)"
+                   ondrop="app.handlePubDrop(event)"
+                   onclick="document.getElementById('pubFileInput').click()">
+                <input type="file" id="pubFileInput" style="display: none;" multiple accept="image/*,video/*,application/pdf" onchange="app.handlePubFileInput(event)">
+                <div class="pub-dropzone-icon">📸🎥</div>
+                <div class="pub-dropzone-title">Beweisfotos, Dashcam- / Bodycam-Videos oder Dokumente hinzufügen</div>
+                <div class="pub-dropzone-desc">Hier Dateien ablegen oder klicken zum Auswählen (Bilder, Videos MP4/WebM, PDF)</div>
+                <div class="pub-dropzone-types">
+                  <span class="pub-pill">📸 Bilder (PNG, JPG)</span>
+                  <span class="pub-pill">🎥 Dashcam & Videos (MP4)</span>
+                  <span class="pub-pill">📄 Strafzettel & Protokolle (PDF)</span>
+                </div>
+              </div>
+
+              <!-- Vorschau der ausgewählten Dateien -->
+              <div id="pubSelectedFilesList" class="pub-files-preview-list" style="display: none;"></div>
+            </div>
+
             <div class="input-group full-width">
               <label class="checkbox-container">
                 <input type="checkbox" id="pubAcceptRules" required>

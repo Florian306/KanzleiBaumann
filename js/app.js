@@ -17,6 +17,7 @@ class KanzleiApp {
 
     this.fees = this.loadFees();
     this.cases = this.loadCases();
+    this.pubSelectedFiles = []; // Temporary storage for public case submission attachments
     this.initBerlinDemoDataIfEmpty();
   }
 
@@ -455,9 +456,105 @@ class KanzleiApp {
     this.navigate('portal');
   }
 
-  // --- CASE SUBMISSION ---
-  handlePublicSubmit(e) {
+  // --- CASE SUBMISSION (WITH EVIDENCE / ATTACHMENTS) ---
+  handlePubDragOver(e) {
     e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('pubDropzone');
+    if (zone) zone.classList.add('dragover');
+  }
+
+  handlePubDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('pubDropzone');
+    if (zone) zone.classList.remove('dragover');
+  }
+
+  handlePubDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('pubDropzone');
+    if (zone) zone.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      this.addPublicFiles(files);
+    }
+  }
+
+  handlePubFileInput(e) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      this.addPublicFiles(files);
+    }
+    // reset input so same file can be selected again if needed
+    e.target.value = '';
+  }
+
+  addPublicFiles(files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      // Avoid duplicate names in same upload session
+      if (!this.pubSelectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        this.pubSelectedFiles.push(file);
+      }
+    }
+    this.renderPubSelectedFilesList();
+  }
+
+  removePubFile(index) {
+    this.pubSelectedFiles.splice(index, 1);
+    this.renderPubSelectedFilesList();
+  }
+
+  renderPubSelectedFilesList() {
+    const listContainer = document.getElementById('pubSelectedFilesList');
+    if (!listContainer) return;
+
+    if (this.pubSelectedFiles.length === 0) {
+      listContainer.style.display = 'none';
+      listContainer.innerHTML = '';
+      return;
+    }
+
+    listContainer.style.display = 'flex';
+    listContainer.innerHTML = `
+      <div class="pub-files-header">
+        <span>Ausgewählte Beweismittel (${this.pubSelectedFiles.length}):</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="app.clearPubFiles()">Alle entfernen</button>
+      </div>
+      <div class="pub-files-chips">
+        ${this.pubSelectedFiles.map((file, idx) => {
+          let icon = '📄';
+          if (file.type.startsWith('image/')) icon = '📸';
+          else if (file.type.startsWith('video/')) icon = '🎥';
+          return `
+            <div class="pub-file-chip">
+              <span class="pub-chip-icon">${icon}</span>
+              <span class="pub-chip-name" title="${this.escapeHtml(file.name)}">${this.escapeHtml(file.name)}</span>
+              <span class="pub-chip-size">(${this.formatFileSize(file.size)})</span>
+              <button type="button" class="pub-chip-remove" onclick="app.removePubFile(${idx})">✕</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  clearPubFiles() {
+    this.pubSelectedFiles = [];
+    this.renderPubSelectedFilesList();
+  }
+
+  async handlePublicSubmit(e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('btnSubmitCase');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Akte & Beweise werden übertragen...</span>';
+    }
 
     const clientName = document.getElementById('pubClientName').value.trim();
     const clientPhone = document.getElementById('pubClientPhone').value.trim();
@@ -468,8 +565,38 @@ class KanzleiApp {
     const demands = document.getElementById('pubDemands').value.trim();
 
     const newAz = this.generateJuridicalAktenzeichen(caseType);
+    const caseId = 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+    // Save attached evidence files into IndexedDB
+    let attachedFilesCount = 0;
+    if (this.pubSelectedFiles && this.pubSelectedFiles.length > 0) {
+      for (const file of this.pubSelectedFiles) {
+        let category = 'document';
+        if (file.type.startsWith('image/')) category = 'image';
+        else if (file.type.startsWith('video/')) category = 'video';
+
+        try {
+          const base64Data = await this.readFileAsDataURL(file);
+          const fileRecord = {
+            id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+            caseId: caseId,
+            name: file.name,
+            type: file.type || 'application/octet-stream',
+            category: category,
+            size: file.size,
+            data: base64Data,
+            uploadedAt: new Date().toISOString()
+          };
+          await this.storage.saveFile(fileRecord);
+          attachedFilesCount++;
+        } catch (err) {
+          console.error('Error saving public submission attachment:', err);
+        }
+      }
+    }
+
     const newCase = {
-      id: 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      id: caseId,
       az: newAz,
       clientName,
       clientPhone,
@@ -489,20 +616,32 @@ class KanzleiApp {
       feeVerfahrensgebuehr: 0,
       feeTerminsgebuehr: 0,
       createdAt: new Date().toISOString(),
-      filesCount: 0
+      filesCount: attachedFilesCount
     };
 
     this.cases.unshift(newCase);
     this.saveCases();
 
+    // Reset form and file cache
     document.getElementById('publicCaseForm').reset();
-    this.showToast(`Fall eingereicht! Aktenzeichen: ${newAz}`, 'success');
+    this.clearPubFiles();
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>Akte registrieren & Aktenzeichen anfordern</span><span class="arrow">✓</span>';
+    }
+
+    const filesMsg = attachedFilesCount > 0 ? ` (${attachedFilesCount} Beweismittel gesichert)` : '';
+    this.showToast(`Fall eingereicht! Aktenzeichen: ${newAz}${filesMsg}`, 'success');
 
     const azBox = document.getElementById('successModalAz');
     const descBox = document.getElementById('successModalDesc');
     if (azBox) azBox.textContent = newAz;
     if (descBox) {
-      descBox.textContent = `Ihre Akte für ${clientName} wurde verbindlich im Berliner Kanzleiregister aufgenommen. Es gilt die Kanzleiordnung („Wer zuerst kommt, mahlt zuerst“). Wir melden uns unter ${clientPhone} bei Ihnen.`;
+      const attachInfo = attachedFilesCount > 0 
+        ? `<br><br>Es wurden <strong>${attachedFilesCount} Beweismittel (Fotos/Videos/Dokumente)</strong> revisionssicher in Ihrer Akte hinterlegt.`
+        : '';
+      descBox.innerHTML = `Ihre Akte für <strong>${this.escapeHtml(clientName)}</strong> wurde verbindlich im Berliner Kanzleiregister aufgenommen.${attachInfo}<br><br>Es gilt die Kanzleiordnung („Wer zuerst kommt, mahlt zuerst“). Wir setzen uns unter <strong>${this.escapeHtml(clientPhone)}</strong> mit Ihnen in Verbindung.`;
     }
     this.openModal('modalSubmissionSuccess');
 
