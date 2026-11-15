@@ -446,10 +446,19 @@ const InternaModules = {
           </tfoot>
         </table>
 
-        <div style="background: #f8fafc; border-left: 4px solid #b8862d; padding: 12px 16px; font-size: 0.88rem; color: #334155; margin-bottom: 28px;">
+        <div style="background: #f8fafc; border-left: 4px solid #b8862d; padding: 12px 16px; font-size: 0.88rem; color: #334155; margin-bottom: ${item.dueDate ? '14px' : '28px'};">
           <strong>Zahlungsmodalitäten:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei Dr. jur. Lars Baumann unter Angabe der Rechnungsnummer <strong>${invNo}</strong>. Barzahlungen sind grundsätzlich ausgeschlossen.
-          ${item.dueDate ? `<br><strong>Zahlungsfrist:</strong> ${item.dueDate === 'Sofort' ? 'Sofort fällig ohne Abzug.' : `Zahlbar innerhalb von ${item.dueDays || 14} Tagen bis zum <strong>${item.dueDate}</strong>.`}` : ''}
         </div>
+        ${item.dueDate ? `
+          <div style="background: #fffbeb; border: 1.5px solid #d97706; border-left: 5px solid #b45309; padding: 12px 16px; border-radius: 6px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+            <div style="font-size: 0.92rem; color: #78350f;">
+              <strong>⏳ Zahlungsfrist:</strong> ${item.dueDate === 'Sofort' ? 'Sofort fällig ohne Abzug.' : `Zahlbar innerhalb von <strong>${item.dueDays || 14} Tagen</strong>`}
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 800; color: #92400e; background: #fef3c7; padding: 4px 12px; border-radius: 4px; border: 1px solid #f59e0b;">
+              ${item.dueDate === 'Sofort' ? 'SOFORT FÄLLIG' : `Fällig bis: ${item.dueDate}`}
+            </div>
+          </div>
+        ` : ''}
 
         <div class="letterhead-footer-sign">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
