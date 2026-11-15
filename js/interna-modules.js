@@ -488,7 +488,7 @@ const InternaModules = {
             <div>
               <div class="letterhead-firm-title">KANZLEI DR. JUR. LARS BAUMANN</div>
               <div class="letterhead-firm-sub">Rechtsanwalt • Fachanwaltschaft für Strafrecht & Zivilrecht</div>
-              <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 030 / 889 204 00</div>
+              <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 907-999-3919</div>
             </div>
           </div>
           <div style="text-align: right;">
@@ -541,7 +541,7 @@ const InternaModules = {
           <strong>Zahlungsmodalitäten:</strong> Die Entrichtung erfolgt ausschließlich per offizieller Rechnungsüberweisung an die Kanzlei Dr. jur. Lars Baumann unter Angabe der Rechnungsnummer <strong>${invNo}</strong>. Barzahlungen sind grundsätzlich ausgeschlossen.
         </div>
         ${item.dueDate ? `
-          <div style="background: #fffbeb; border: 1.5px solid #d97706; border-left: 5px solid #b45309; padding: 12px 16px; border-radius: 6px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div style="background: #fffbeb; border: 1.5px solid #d97706; border-left: 5px solid #b45309; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
             <div style="font-size: 0.92rem; color: #78350f;">
               <strong>⏳ Zahlungsfrist:</strong> ${item.dueDate === 'Sofort' ? 'Sofort fällig ohne Abzug.' : `Zahlbar innerhalb von <strong>${item.dueDays || 14} Tagen</strong>`}
             </div>
@@ -550,6 +550,9 @@ const InternaModules = {
             </div>
           </div>
         ` : ''}
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 10px 14px; font-size: 0.82rem; color: #7f1d1d; margin-bottom: 28px;">
+          <strong>Hinweis bei Zahlungsverzug:</strong> Bei nicht fristgerechter Begleichung der Honorarnote gerät der Mandant automatisch in Zahlungsverzug (§ 286 BGB). Die Kanzlei behält sich in diesem Fall vor, gesetzliche Verzugszinsen, Mahngebühren sowie ein gerichtliches Mahn- und Vollstreckungsverfahren einzuleiten und das Mandat niederzulegen.
+        </div>
 
         <div class="letterhead-footer-sign">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">

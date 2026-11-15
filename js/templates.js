@@ -8,7 +8,7 @@ const SchriftsatzTemplates = {
     return `KANZLEI DR. JUR. LARS BAUMANN
 Rechtsanwalt & Fachanwalt für Strafrecht
 Kurfürstendamm 182, 10707 Berlin
-Tel: 030 / 889 204 00 • E-Mail: baumann@kanzlei-berlin-strafrecht.de
+Tel: 907-999-3919 • E-Mail: baumann@kanzlei-berlin-strafrecht.de
 
 Aktenzeichen: ${c.az}
 Berlin, den ${dateNow}

@@ -1419,7 +1419,7 @@ Zahlbar binnen 14 Tagen auf das Kanzleikonto Dr. Lars Baumann. Barzahlungen sind
           <div>
             <div class="letterhead-firm-title">KANZLEI DR. JUR. LARS BAUMANN</div>
             <div class="letterhead-firm-sub">Fachanwaltschaft für Strafrecht, Polizeirecht & Zivilansprüche</div>
-            <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 030 / 889 204 00</div>
+            <div class="letterhead-firm-sub">Kurfürstendamm 182 • 10707 Berlin • Tel: 907-999-3919</div>
           </div>
           <div style="text-align: right;">
             <div style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">${c.az}</div>
