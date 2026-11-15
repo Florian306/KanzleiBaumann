@@ -2906,6 +2906,110 @@ html, body {
 .prio-hoch { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
 .prio-eilig { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
 
+/* Honorar Leistungsauswahl & Aufschlüsselung */
+.fin-services-selector {
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fin-service-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.84rem;
+}
+
+.fin-service-option:hover {
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.fin-service-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-gold);
+  cursor: pointer;
+}
+
+.fin-service-name {
+  flex: 1;
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+.fin-service-price {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-gold-light);
+  white-space: nowrap;
+}
+
+.fin-breakdown-box {
+  margin-top: 12px;
+  background: rgba(15, 22, 35, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 0.83rem;
+}
+
+.fin-breakdown-title {
+  font-weight: 700;
+  color: var(--accent-gold-light);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.5px;
+}
+
+.fin-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-body);
+  padding: 3px 0;
+}
+
+.fin-breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(212, 175, 55, 0.3);
+  margin-top: 8px;
+  padding-top: 8px;
+  font-size: 0.94rem;
+  color: var(--accent-gold);
+}
+
+.fin-saved-breakdown {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fin-saved-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
 /* ================= PRINT / PDF EXPORT ENGINE ================= */
 @page {
   size: A4 portrait;

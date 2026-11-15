@@ -18,6 +18,7 @@ const InternaModules = {
 
   renderAll() {
     this.renderAppointments();
+    this.renderFinanceServicesSelector();
     this.renderFinances();
     this.renderTodos();
   },
@@ -159,6 +160,92 @@ const InternaModules = {
   },
 
   // --- 2. FINANZEN & HONORARE ---
+  renderFinanceServicesSelector() {
+    const container = document.getElementById('finServicesSelector');
+    if (!container || typeof FEE_GROUPS === 'undefined') return;
+
+    const fees = (window.app && app.fees) ? app.fees : (typeof DEFAULT_FEES !== 'undefined' ? DEFAULT_FEES : {});
+    const fmt = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+
+    let html = '';
+    FEE_GROUPS.forEach(group => {
+      group.items.forEach(item => {
+        const val = fees[item.id] !== undefined ? fees[item.id] : 0;
+        const priceLabel = item.isPercent ? `+${val} %` : `${fmt(val)}${item.unitSuffix || ''}`;
+        html += `
+          <label class="fin-service-option">
+            <input type="checkbox" class="fin-service-cb" value="${item.id}" data-title="${app ? app.escapeHtml(item.title) : item.title}" data-percent="${item.isPercent ? '1' : '0'}" onchange="InternaModules.updateFinanceBreakdown()">
+            <span class="fin-service-name">${item.title}</span>
+            <span class="fin-service-price">${priceLabel}</span>
+          </label>
+        `;
+      });
+    });
+
+    container.innerHTML = html;
+    this.updateFinanceBreakdown();
+  },
+
+  updateFinanceBreakdown() {
+    const box = document.getElementById('finBreakdownBox');
+    const amountInput = document.getElementById('finAmount');
+    if (!box || !amountInput) return;
+
+    const fees = (window.app && app.fees) ? app.fees : (typeof DEFAULT_FEES !== 'undefined' ? DEFAULT_FEES : {});
+    const fmt = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+
+    const checkboxes = Array.from(document.querySelectorAll('.fin-service-cb:checked'));
+    if (checkboxes.length === 0) {
+      box.style.display = 'none';
+      box.innerHTML = '';
+      amountInput.value = '';
+      return [];
+    }
+
+    let baseSum = 0;
+    const lines = [];
+    let urgencyPct = 0;
+
+    checkboxes.forEach(cb => {
+      const id = cb.value;
+      const title = cb.getAttribute('data-title');
+      const isPercent = cb.getAttribute('data-percent') === '1';
+      const val = fees[id] !== undefined ? fees[id] : 0;
+
+      if (isPercent) {
+        urgencyPct = val;
+      } else {
+        baseSum += val;
+        lines.push({ title, amount: val });
+      }
+    });
+
+    let total = baseSum;
+    if (urgencyPct > 0 && baseSum > 0) {
+      const surcharge = Math.round(baseSum * (urgencyPct / 100));
+      total += surcharge;
+      lines.push({ title: `Dringlichkeitszuschlag (+${urgencyPct} %)`, amount: surcharge });
+    }
+
+    amountInput.value = total;
+    box.style.display = 'block';
+    box.innerHTML = `
+      <div class="fin-breakdown-title">Kostenaufschlüsselung:</div>
+      ${lines.map(l => `
+        <div class="fin-breakdown-row">
+          <span>${app.escapeHtml(l.title)}</span>
+          <strong>${fmt(l.amount)}</strong>
+        </div>
+      `).join('')}
+      <div class="fin-breakdown-total">
+        <span>Gesamthonorar</span>
+        <strong>${fmt(total)}</strong>
+      </div>
+    `;
+
+    return lines;
+  },
+
   getFinances() {
     try { return JSON.parse(localStorage.getItem(this.keys.finances)) || []; }
     catch { return []; }
@@ -173,19 +260,25 @@ const InternaModules = {
   addFinanceEntry(e) {
     e.preventDefault();
     const client = document.getElementById('finClient').value.trim();
-    const desc = document.getElementById('finDesc').value.trim();
     const amount = parseFloat(document.getElementById('finAmount').value) || 0;
     const status = document.getElementById('finStatus').value;
+    const breakdown = this.updateFinanceBreakdown();
 
-    if (!client || !desc || amount <= 0) return;
+    if (!client || breakdown.length === 0 || amount <= 0) {
+      if (window.app) app.showToast('Bitte Mandant und mindestens eine Leistung auswählen.', 'error');
+      return;
+    }
+
+    const desc = breakdown.map(b => b.title).join(' + ');
     const list = this.getFinances();
     list.unshift({
       id: 'fin_' + Date.now(),
-      client, desc, amount, status,
+      client, desc, breakdown, amount, status,
       date: new Date().toLocaleDateString('de-DE')
     });
     this.saveFinances(list);
     e.target.reset();
+    this.updateFinanceBreakdown();
     if (window.app) app.showToast('Honorareintrag verbucht!', 'success');
   },
 
@@ -226,7 +319,7 @@ const InternaModules = {
 
     container.innerHTML = list.map(item => `
       <div class="interna-item-card">
-        <div class="interna-item-main">
+        <div class="interna-item-main" style="width: 100%;">
           <div class="interna-item-top">
             <span class="fin-status-pill ${item.status === 'Bezahlt' ? 'paid' : 'open'}" onclick="InternaModules.toggleFinanceStatus('${item.id}')" title="Klicken zum Umschalten">
               ${item.status === 'Bezahlt' ? '✓ Bezahlt' : '⏳ Offen (Überweisung)'}
@@ -234,7 +327,11 @@ const InternaModules = {
             <span style="font-size:0.78rem; color:var(--text-muted);">${item.date}</span>
           </div>
           <div class="interna-item-title">${app.escapeHtml(item.client)} — <strong style="color:var(--accent-gold-light);">${fmt(item.amount)}</strong></div>
-          <div class="interna-item-sub">${app.escapeHtml(item.desc)}</div>
+          ${Array.isArray(item.breakdown) && item.breakdown.length > 0 ? `
+            <div class="fin-saved-breakdown">
+              ${item.breakdown.map(b => `<div class="fin-saved-line"><span>• ${app.escapeHtml(b.title)}</span><span>${fmt(b.amount)}</span></div>`).join('')}
+            </div>
+          ` : `<div class="interna-item-sub">${app.escapeHtml(item.desc)}</div>`}
         </div>
         <button class="btn btn-danger-outline btn-sm" onclick="InternaModules.deleteFinanceEntry('${item.id}')" title="Eintrag löschen">✕</button>
       </div>

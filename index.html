@@ -633,14 +633,21 @@
                   <label>Mandant / Rechnungsempfänger *</label>
                   <input type="text" id="finClient" required placeholder="z. B. Maximilian Kraft">
                 </div>
-                <div class="input-group" style="margin-top: 12px;">
-                  <label>Leistung (gem. Honorarordnung) *</label>
-                  <input type="text" id="finDesc" required placeholder="z. B. Komplette Strafverteidigung + Fahrtpauschale">
+
+                <div class="input-group" style="margin-top: 14px;">
+                  <label>Leistungen aus Honorarordnung wählen *</label>
+                  <div id="finServicesSelector" class="fin-services-selector">
+                    <!-- Dynamisch aus FEE_GROUPS & app.fees gerendert -->
+                  </div>
                 </div>
-                <div class="form-grid" style="margin-top: 12px;">
+
+                <!-- Live Aufschlüsselung -->
+                <div id="finBreakdownBox" class="fin-breakdown-box" style="display: none;"></div>
+
+                <div class="form-grid" style="margin-top: 14px;">
                   <div class="input-group">
-                    <label>Betrag (€) *</label>
-                    <input type="number" id="finAmount" required min="1" placeholder="12000">
+                    <label>Gesamtbetrag (€) *</label>
+                    <input type="number" id="finAmount" required min="1" placeholder="0" readonly style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-gold-light);">
                   </div>
                   <div class="input-group">
                     <label>Zahlungsstatus</label>
