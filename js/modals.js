@@ -91,9 +91,26 @@ const ModalComponents = {
                 <input type="number" id="inputFeeDringlichkeitszuschlag" required min="0">
               </div>
             </div>
+
+            <!-- Discord Webhook Integration -->
+            <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+              <h4 style="font-size: 0.95rem; color: var(--accent-gold-light); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                <span>📢 Discord Webhook Benachrichtigung</span>
+                <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; font-size: 0.72rem; padding: 2px 8px; border-radius: 10px;">Optional</span>
+              </h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+                Benachrichtigt Ihren Kanzlei-Discord-Channel bei jedem neuen Mandatseingang in Berlin (insbesondere bei Eilanträgen / Festnahmen).
+              </p>
+              <div class="input-group">
+                <label for="inputDiscordWebhook">Discord Webhook URL</label>
+                <input type="url" id="inputDiscordWebhook" placeholder="https://discord.com/api/webhooks/..." style="font-family: var(--font-mono); font-size: 0.85rem;">
+                <small class="helper-text">Leer lassen, wenn keine Discord-Pings gewünscht sind.</small>
+              </div>
+            </div>
+
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="app.closeModal('modalEditFees')">Abbrechen</button>
-              <button type="submit" class="btn btn-primary">Gebührensätze speichern</button>
+              <button type="submit" class="btn btn-primary">Gebührensätze & Einstellungen speichern</button>
             </div>
           </form>
         </div>

@@ -1397,7 +1397,7 @@ html, body {
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .input-group.full-width {
@@ -1407,28 +1407,196 @@ html, body {
 .input-group label {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-icon {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
 }
 
 .input-group input,
 .input-group select,
 .input-group textarea {
+  width: 100%;
   background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 11px 14px;
+  border: 1.5px solid var(--border-color);
+  color: #ffffff;
+  padding: 12px 14px;
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
-  font-size: 0.92rem;
-  transition: all 0.2s;
+  font-size: 0.94rem;
+  transition: all 0.2s ease;
   outline: none;
+}
+
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+  color: #94a3b8; /* Hochkontrast für deutliche Lesbarkeit */
+  opacity: 1;
+}
+
+.input-group input:hover,
+.input-group select:hover,
+.input-group textarea:hover {
+  border-color: var(--border-light);
 }
 
 .input-group input:focus,
 .input-group select:focus,
 .input-group textarea:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: var(--accent-gold);
+  background: rgba(26, 36, 56, 0.95);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);
+}
+
+/* Form Section Grouping (Multi-Step Feeling) */
+.form-section-group {
+  background: rgba(19, 25, 38, 0.45);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 22px;
+}
+
+.form-step-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent-gold-light);
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  width: 100%;
+}
+
+.step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  color: #0d1527;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+/* Live Aktenzeichen Preview Badge */
+.az-preview-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 7px 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px dashed rgba(212, 175, 55, 0.45);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.az-preview-label {
+  color: var(--text-muted);
+}
+
+.az-preview-code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 0.5px;
+  background: rgba(212, 175, 55, 0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* 🚨 Urgency / Gewahrsam Toggle */
+.urgency-toggle-card {
+  margin-top: 18px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  transition: all 0.25s ease;
+}
+
+.urgency-toggle-card.active-urgent {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+}
+
+.urgency-switch-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.urgency-switch-label input {
+  display: none;
+}
+
+.urgency-slider {
+  width: 46px;
+  height: 24px;
+  min-width: 46px;
+  background: #334155;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.25s ease;
+  margin-top: 2px;
+}
+
+.urgency-slider::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+}
+
+.urgency-switch-label input:checked + .urgency-slider {
+  background: #ef4444;
+}
+
+.urgency-switch-label input:checked + .urgency-slider::after {
+  transform: translateX(22px);
+}
+
+.urgency-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.urgency-title {
+  color: #fca5a5;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+}
+
+.urgency-subtitle {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .input-group textarea {

@@ -8,6 +8,7 @@ class KanzleiApp {
     this.storage = new StorageService();
     this.storageKey = 'kanzlei_lars_baumann_berlin_cases_v4';
     this.feesKey = 'kanzlei_lars_baumann_fees_v1';
+    this.webhookKey = 'kanzlei_lars_baumann_discord_webhook_v1';
     this.authKey = 'kanzlei_lars_baumann_authenticated';
     this.passwordHash = 'baumann2026';
 
@@ -16,6 +17,7 @@ class KanzleiApp {
     this.currentDetailTab = 'stammdaten';
 
     this.fees = this.loadFees();
+    this.discordWebhookUrl = localStorage.getItem(this.webhookKey) || '';
     this.cases = this.loadCases();
     this.pubSelectedFiles = []; // Temporary storage for public case submission attachments
     this.initBerlinDemoDataIfEmpty();
@@ -33,6 +35,7 @@ class KanzleiApp {
     this.renderFAQ();
     this.renderCasesTable();
     this.updateMetrics();
+    this.updateAzPreview();
   }
 
   updateClock() {
@@ -179,6 +182,9 @@ class KanzleiApp {
       if (el) el.value = this.fees[lowerId] || DEFAULT_FEES[lowerId] || 0;
     });
 
+    const whInput = document.getElementById('inputDiscordWebhook');
+    if (whInput) whInput.value = this.discordWebhookUrl;
+
     this.openModal('modalEditFees');
   }
 
@@ -199,6 +205,13 @@ class KanzleiApp {
       dringlichkeitszuschlag: parseFloat(document.getElementById('inputFeeDringlichkeitszuschlag')?.value) || 50
     };
     this.saveFees(updated);
+
+    const whInput = document.getElementById('inputDiscordWebhook');
+    if (whInput) {
+      this.discordWebhookUrl = whInput.value.trim();
+      localStorage.setItem(this.webhookKey, this.discordWebhookUrl);
+    }
+
     this.closeModal('modalEditFees');
   }
 
@@ -456,7 +469,72 @@ class KanzleiApp {
     this.navigate('portal');
   }
 
-  // --- CASE SUBMISSION (WITH EVIDENCE / ATTACHMENTS) ---
+  // --- CASE SUBMISSION (WITH EVIDENCE / ATTACHMENTS & URGENCY) ---
+  updateAzPreview() {
+    const select = document.getElementById('pubCaseType');
+    const badge = document.getElementById('pubAzPreviewCode');
+    if (!select || !badge) return;
+
+    const caseType = select.value;
+    const previewAz = this.generateJuridicalAktenzeichen(caseType);
+    badge.textContent = previewAz;
+  }
+
+  toggleUrgencyMode(isUrgent) {
+    const card = document.getElementById('urgencyToggleCard');
+    if (!card) return;
+    if (isUrgent) {
+      card.classList.add('active-urgent');
+      this.showToast('🚨 Eilmodus aktiviert: Sofortige Prioritätsprüfung für Gewahrsamsfälle.', 'warning');
+    } else {
+      card.classList.remove('active-urgent');
+    }
+  }
+
+  async sendDiscordWebhookNotification(caseData) {
+    if (!this.discordWebhookUrl) return;
+
+    try {
+      const isUrgent = caseData.securityLevel === 'notfall';
+      const color = isUrgent ? 0xef4444 : 0xd4af37; // Red or Gold
+
+      const payload = {
+        username: "Kanzlei Dr. Lars Baumann — Fallregister",
+        avatar_url: "https://raw.githubusercontent.com/Florian306/KanzleiBaumann/main/assets/seal.png",
+        embeds: [
+          {
+            title: isUrgent ? "🚨 EILMANDAT / GEWAHRSAMSEINSATZ BERLIN" : "⚖️ Neues Mandat im Kanzleiregister eingereicht",
+            description: `Ein neuer Sachverhalt wurde über das Kanzleiportal Berlin eingereicht.`,
+            color: color,
+            fields: [
+              { name: "Aktenzeichen", value: `\`${caseData.az}\``, inline: true },
+              { name: "Rechtsgebiet", value: caseData.caseType, inline: true },
+              { name: "Priorität", value: isUrgent ? "🚨 **HOCH (GEWAHRSAM)**" : "Normal", inline: true },
+              { name: "Mandant", value: caseData.clientName, inline: true },
+              { name: "Kontakt / Funk", value: caseData.clientPhone, inline: true },
+              { name: "Gegenseite", value: caseData.opponent, inline: true },
+              { name: "Tatort / Vorfall", value: caseData.incidentDate || "Berlin", inline: false },
+              { name: "Sachverhalt", value: (caseData.description.length > 400 ? caseData.description.substring(0, 397) + "..." : caseData.description), inline: false },
+              { name: "Beweismittel", value: `${caseData.filesCount} Datei(en) in Kanzleidatenbank gesichert`, inline: true }
+            ],
+            footer: {
+              text: "Kanzlei Dr. jur. Lars Baumann • Kurfürstendamm 182, 10707 Berlin"
+            },
+            timestamp: new Date().toISOString()
+          }
+        ]
+      };
+
+      await fetch(this.discordWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.warn('Discord webhook notification could not be sent:', err);
+    }
+  }
+
   handlePubDragOver(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -563,6 +641,7 @@ class KanzleiApp {
     const incidentDate = document.getElementById('pubIncidentDate').value.trim();
     const description = document.getElementById('pubDescription').value.trim();
     const demands = document.getElementById('pubDemands').value.trim();
+    const isUrgent = document.getElementById('pubIsUrgent')?.checked || false;
 
     const newAz = this.generateJuridicalAktenzeichen(caseType);
     const caseId = 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -606,11 +685,11 @@ class KanzleiApp {
       incidentDate,
       description,
       demands,
-      notes: '',
+      notes: isUrgent ? '🚨 EILMANDAT: Mandant meldet akuten Polizeigewahrsam / Festnahme in Berlin!' : '',
       witnesses: '',
       schriftsatz: '',
-      securityLevel: 'normal',
-      deadlineTimestamp: null,
+      securityLevel: isUrgent ? 'notfall' : 'normal',
+      deadlineTimestamp: isUrgent ? (Date.now() + (24 * 3600 * 1000)) : null,
       markers: [],
       feeGrundgebuehr: this.fees.erstberatung || 1000,
       feeVerfahrensgebuehr: 0,
@@ -622,9 +701,14 @@ class KanzleiApp {
     this.cases.unshift(newCase);
     this.saveCases();
 
-    // Reset form and file cache
+    // Trigger async Discord webhook notification (if configured)
+    this.sendDiscordWebhookNotification(newCase);
+
+    // Reset form, urgency switch and file cache
     document.getElementById('publicCaseForm').reset();
+    this.toggleUrgencyMode(false);
     this.clearPubFiles();
+    this.updateAzPreview();
 
     if (submitBtn) {
       submitBtn.disabled = false;

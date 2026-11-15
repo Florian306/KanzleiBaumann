@@ -275,77 +275,147 @@
         </div>
 
         <form id="publicCaseForm" onsubmit="app.handlePublicSubmit(event)">
-          <div class="form-grid">
-            <div class="input-group">
-              <label for="pubClientName">Vor- & Zuname des Mandanten / Einreichers *</label>
-              <input type="text" id="pubClientName" required placeholder="z. B. Maximilian Kraft oder POK Richter">
+          <!-- Schritt 1: Mandant & Kontaktdaten -->
+          <div class="form-section-group">
+            <div class="form-step-tag">
+              <span class="step-num">1</span>
+              <span>Mandant & Erreichbarkeit</span>
             </div>
-
-            <div class="input-group">
-              <label for="pubClientPhone">Telefonnummer / Mobilfunk *</label>
-              <input type="text" id="pubClientPhone" required placeholder="z. B. 0170 / 1234567">
-            </div>
-
-            <div class="input-group">
-              <label for="pubCaseType">Verfahrensart / Rechtsgebiet *</label>
-              <select id="pubCaseType" required>
-                <option value="Strafverteidigung">Strafverteidigung [StR] (Tatvorwurf, Haftprüfung AG Tiergarten)</option>
-                <option value="Polizeirecht / Dienstbeschwerde">Polizeirecht [PolR] (Dienstaufsichtsbeschwerde Polizei Berlin)</option>
-                <option value="Zivilrecht / Schadensersatz">Zivilrecht [Ziv] (Schadensersatz, Schmerzensgeld)</option>
-                <option value="Waffen- & Lizenzrecht">Waffen- & Gewerbelizenzen [WaffR] (LABO Berlin)</option>
-                <option value="Dienstaufsicht">Interne Ermittlungen [IAD] / Beamtenrecht</option>
-                <option value="Sonstiges">Sonstiges Eilverfahren [Allg]</option>
-              </select>
-            </div>
-
-            <div class="input-group">
-              <label for="pubOpponent">Gegenseite / Berliner Behörde oder Person *</label>
-              <input type="text" id="pubOpponent" required placeholder="z. B. Polizei Berlin Abschnitt 32 oder Fa. Berliner Wachschutz">
-            </div>
-
-            <div class="input-group full-width">
-              <label for="pubIncidentDate">Datum & Ort des Vorfalls in Berlin *</label>
-              <input type="text" id="pubIncidentDate" required placeholder="z. B. 04.11.2026 gegen 22:00 Uhr am Kottbusser Tor / Kreuzberg">
-            </div>
-
-            <div class="input-group full-width">
-              <label for="pubDescription">Ausführliche Sachverhaltsschilderung *</label>
-              <textarea id="pubDescription" rows="6" required placeholder="Beschreiben Sie präzise: Was ist geschehen? Welche Vorwürfe stehen im Raum? Welche Polizeibeamten waren anwesend? Welche Rechte wurden evtl. verletzt?"></textarea>
-            </div>
-
-            <div class="input-group full-width">
-              <label for="pubDemands">Ihr konkretes Rechtsschutzziel</label>
-              <input type="text" id="pubDemands" placeholder="z. B. Entlassung aus Gewahrsam, Akteneinsicht, Schadenersatz 15.000 €">
-            </div>
-
-            <!-- Beweismittel-Upload (Bilder & Videos) -->
-            <div class="input-group full-width">
-              <label>Beweismittel & Dokumente (Optional)</label>
-              <div class="pub-upload-dropzone" id="pubDropzone"
-                   ondragover="app.handlePubDragOver(event)"
-                   ondragleave="app.handlePubDragLeave(event)"
-                   ondrop="app.handlePubDrop(event)"
-                   onclick="document.getElementById('pubFileInput').click()">
-                <input type="file" id="pubFileInput" style="display: none;" multiple accept="image/*,video/*,application/pdf" onchange="app.handlePubFileInput(event)">
-                <div class="pub-dropzone-icon">📸🎥</div>
-                <div class="pub-dropzone-title">Beweisfotos, Dashcam- / Bodycam-Videos oder Dokumente hinzufügen</div>
-                <div class="pub-dropzone-desc">Hier Dateien ablegen oder klicken zum Auswählen (Bilder, Videos MP4/WebM, PDF)</div>
-                <div class="pub-dropzone-types">
-                  <span class="pub-pill">📸 Bilder (PNG, JPG)</span>
-                  <span class="pub-pill">🎥 Dashcam & Videos (MP4)</span>
-                  <span class="pub-pill">📄 Strafzettel & Protokolle (PDF)</span>
+            <div class="form-grid">
+              <div class="input-group">
+                <label for="pubClientName">
+                  <span class="input-icon">👤</span> Vor- & Zuname des Mandanten / Einreichers *
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="pubClientName" required placeholder="z. B. Maximilian Kraft oder POK Richter">
                 </div>
               </div>
 
-              <!-- Vorschau der ausgewählten Dateien -->
-              <div id="pubSelectedFilesList" class="pub-files-preview-list" style="display: none;"></div>
+              <div class="input-group">
+                <label for="pubClientPhone">
+                  <span class="input-icon">📞</span> Telefonnummer / Mobilfunk / Funk *
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="pubClientPhone" required placeholder="z. B. 0170 / 1234567 oder Funk 44-12">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schritt 2: Verfahrensart, Vorschau & Gegenseite -->
+          <div class="form-section-group">
+            <div class="form-step-tag">
+              <span class="step-num">2</span>
+              <span>Rechtsgebiet & Behörde</span>
+            </div>
+            <div class="form-grid">
+              <div class="input-group">
+                <label for="pubCaseType">
+                  <span class="input-icon">⚖️</span> Verfahrensart / Rechtsgebiet *
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="pubCaseType" required onchange="app.updateAzPreview()">
+                    <option value="Strafverteidigung" selected>Strafverteidigung [StR] (Tatvorwurf, Haftprüfung AG Tiergarten)</option>
+                    <option value="Polizeirecht / Dienstbeschwerde">Polizeirecht [PolR] (Dienstaufsichtsbeschwerde Polizei Berlin)</option>
+                    <option value="Zivilrecht / Schadensersatz">Zivilrecht [Ziv] (Schadensersatz, Schmerzensgeld)</option>
+                    <option value="Waffen- & Lizenzrecht">Waffen- & Gewerbelizenzen [WaffR] (LABO Berlin)</option>
+                    <option value="Dienstaufsicht">Interne Ermittlungen [IAD] / Beamtenrecht</option>
+                    <option value="Sonstiges">Sonstiges Eilverfahren [Allg]</option>
+                  </select>
+                </div>
+                <!-- Live Aktenzeichen Vorschau Badge -->
+                <div class="az-preview-pill" id="pubAzPreviewBadge">
+                  <span class="az-preview-label">Voraussichtliches Aktenzeichen:</span>
+                  <span class="az-preview-code" id="pubAzPreviewCode">---</span>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="pubOpponent">
+                  <span class="input-icon">🏛️</span> Gegenseite / Berliner Behörde oder Person *
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="pubOpponent" required placeholder="z. B. Polizei Berlin Abschnitt 32 oder Fa. Berliner Wachschutz">
+                </div>
+              </div>
             </div>
 
-            <div class="input-group full-width">
-              <label class="checkbox-container">
-                <input type="checkbox" id="pubAcceptRules" required>
-                <span>Ich bestätige die Richtigkeit der Angaben und akzeptiere die Berliner Kanzleiordnung (Mandatsannahme nach Eingangsprinzip).</span>
+            <!-- 🚨 EILBEDARF & GEWAHRSAMS-SWITCH -->
+            <div class="urgency-toggle-card" id="urgencyToggleCard">
+              <label class="urgency-switch-label">
+                <input type="checkbox" id="pubIsUrgent" onchange="app.toggleUrgencyMode(this.checked)">
+                <span class="urgency-slider"></span>
+                <span class="urgency-text">
+                  <strong class="urgency-title">🚨 EILBEDARF / FESTNAHME (Polizeigewahrsam Berlin)</strong>
+                  <span class="urgency-subtitle">Aktivieren, wenn sich der Betroffene aktuell in polizeilichem Gewahrsam befindet oder eine 24h-Haftprüfungsfrist läuft.</span>
+                </span>
               </label>
+            </div>
+          </div>
+
+          <!-- Schritt 3: Sachverhalt & Beweismittel -->
+          <div class="form-section-group">
+            <div class="form-step-tag">
+              <span class="step-num">3</span>
+              <span>Sachverhalt & Beweismittel</span>
+            </div>
+            <div class="form-grid">
+              <div class="input-group full-width">
+                <label for="pubIncidentDate">
+                  <span class="input-icon">📍</span> Datum & Ort des Vorfalls in Berlin *
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="pubIncidentDate" required placeholder="z. B. 04.11.2026 gegen 22:00 Uhr am Kottbusser Tor / Kreuzberg">
+                </div>
+              </div>
+
+              <div class="input-group full-width">
+                <label for="pubDescription">
+                  <span class="input-icon">📝</span> Ausführliche Sachverhaltsschilderung *
+                </label>
+                <textarea id="pubDescription" rows="5" required placeholder="Beschreiben Sie präzise: Was ist geschehen? Welche Vorwürfe stehen im Raum? Welche Polizeibeamten waren anwesend? Welche Rechte wurden evtl. verletzt?"></textarea>
+              </div>
+
+              <div class="input-group full-width">
+                <label for="pubDemands">
+                  <span class="input-icon">🎯</span> Ihr konkretes Rechtsschutzziel
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="pubDemands" placeholder="z. B. Entlassung aus Gewahrsam, Akteneinsicht, Schadenersatz 15.000 €">
+                </div>
+              </div>
+
+              <!-- Beweismittel-Upload (Bilder & Videos) -->
+              <div class="input-group full-width">
+                <label>
+                  <span class="input-icon">📎</span> Beweismittel & Dokumente (Optional)
+                </label>
+                <div class="pub-upload-dropzone" id="pubDropzone"
+                     ondragover="app.handlePubDragOver(event)"
+                     ondragleave="app.handlePubDragLeave(event)"
+                     ondrop="app.handlePubDrop(event)"
+                     onclick="document.getElementById('pubFileInput').click()">
+                  <input type="file" id="pubFileInput" style="display: none;" multiple accept="image/*,video/*,application/pdf" onchange="app.handlePubFileInput(event)">
+                  <div class="pub-dropzone-icon">📸🎥📄</div>
+                  <div class="pub-dropzone-title">Beweisfotos, Dashcam- / Bodycam-Videos oder Dokumente hinzufügen</div>
+                  <div class="pub-dropzone-desc">Dateien hierher ziehen oder klicken zum Auswählen (Bilder, MP4/WebM Videos, PDF)</div>
+                  <div class="pub-dropzone-types">
+                    <span class="pub-pill">📸 Bilder (PNG, JPG)</span>
+                    <span class="pub-pill">🎥 Dashcam & Videos (MP4)</span>
+                    <span class="pub-pill">📄 Akten & Protokolle (PDF)</span>
+                  </div>
+                </div>
+
+                <!-- Vorschau der ausgewählten Dateien -->
+                <div id="pubSelectedFilesList" class="pub-files-preview-list" style="display: none;"></div>
+              </div>
+
+              <div class="input-group full-width">
+                <label class="checkbox-container">
+                  <input type="checkbox" id="pubAcceptRules" required>
+                  <span>Ich bestätige die Richtigkeit der Angaben und akzeptiere die Berliner Kanzleiordnung (Mandatsannahme nach Eingangsprinzip).</span>
+                </label>
+              </div>
             </div>
           </div>
 
